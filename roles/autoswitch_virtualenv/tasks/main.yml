@@ -1,0 +1,16 @@
+---
+# Install the autoswitch_virtualenv plugin and enable it. Depends on zsh_config.
+
+- name: Clone zsh-autoswitch-virtualenv
+  ansible.builtin.git:
+    repo: "{{ autoswitch_virtualenv_repo }}"
+    dest: "{{ omz_custom }}/plugins/autoswitch_virtualenv"
+    depth: 1
+    update: false
+
+- name: Enable autoswitch_virtualenv (plugins.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/plugins.d/25-autoswitch_virtualenv.zsh"
+    mode: "0644"
+    content: |
+      plugins+=(autoswitch_virtualenv)

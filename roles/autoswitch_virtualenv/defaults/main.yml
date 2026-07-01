@@ -1,0 +1,4 @@
+---
+# Default variables for the autoswitch_virtualenv role.
+omz_custom: "{{ oh_my_zsh_dir }}/custom"
+autoswitch_virtualenv_repo: "https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv.git"

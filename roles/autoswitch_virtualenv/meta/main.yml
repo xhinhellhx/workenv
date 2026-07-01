@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: autoswitch_virtualenv
+  author: xhinhellhx
+  description: Installs and enables the zsh autoswitch_virtualenv plugin
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: zsh_config
