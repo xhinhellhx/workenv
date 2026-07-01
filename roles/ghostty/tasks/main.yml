@@ -13,3 +13,9 @@
 
 - name: Deploy Ghostty configuration
   ansible.builtin.import_tasks: config.yml
+
+# Make Ghostty the default terminal. Linux only — macOS has no supported
+# mechanism to set a system default terminal application.
+- name: Set Ghostty as the default terminal (Linux)
+  ansible.builtin.import_tasks: default-terminal.yml
+  when: ansible_facts['system'] == "Linux"

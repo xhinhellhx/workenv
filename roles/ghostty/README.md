@@ -40,6 +40,26 @@ installing, so the run does not race a freshly bootstrapped snapd.
 | `ghostty_snap_name`   | `ghostty`                | Snap package name (Linux).                     |
 | `ghostty_bin`         | `/usr/local/bin/ghostty` | Launcher symlink on PATH → `/snap/bin/ghostty`. |
 
+## Default terminal
+
+On **Linux** the role makes Ghostty the default terminal using every mechanism
+that applies to the host:
+
+- **Debian/Ubuntu** — registers Ghostty as the `x-terminal-emulator` alternative
+  at priority 100 (above the distro terminals), so `sensible-terminal` and apps
+  that spawn it pick Ghostty.
+- **All Linux** — writes `/etc/profile.d/ghostty-default-terminal.sh` exporting
+  `TERMINAL={{ ghostty_bin }}`, honoured by TUI launchers and the emerging
+  `xdg-terminal-exec` spec. This is the primary lever on RHEL/GNOME, which has
+  no `x-terminal-emulator`.
+- **GNOME** — best-effort: sets the legacy
+  `org.gnome.desktop.default-applications.terminal` dconf key where the schema
+  exists. Modern GNOME has deprecated this key, so it is non-fatal if ignored.
+
+> **macOS** has no supported way to set a system-wide default terminal
+> ([Apple does not expose one](https://github.com/ghostty-org/ghostty/discussions/7364)),
+> so the role does not attempt it there.
+
 ## Configuration
 
 The role deploys `files/config/ghostty/config` to
@@ -56,6 +76,7 @@ on both macOS and Linux). Current settings:
 
 - `tasks/install-macos.yml` — Homebrew cask install.
 - `tasks/install-linux.yml` — snapd bootstrap (apt / EPEL+dnf), seeding wait, snap install, launcher symlink.
+- `tasks/default-terminal.yml` — sets Ghostty as the default terminal on Linux (x-terminal-emulator, `$TERMINAL`, GNOME dconf).
 - `tasks/config.yml` — deploys the config file and bundled themes.
 - `vars/main.yml` — snapd / EPEL package names.
 - `files/config/ghostty/config` — the deployed Ghostty config.
