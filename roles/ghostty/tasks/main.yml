@@ -10,3 +10,6 @@
 - name: Install Ghostty on Linux (build from source)
   ansible.builtin.import_tasks: install-linux.yml
   when: ansible_system == "Linux"
+
+- name: Deploy Ghostty configuration
+  ansible.builtin.import_tasks: config.yml

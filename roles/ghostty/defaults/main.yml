@@ -1,6 +1,11 @@
 ---
 # Default variables for the ghostty role.
 
+# --- Configuration ------------------------------------------------------------
+# Ghostty reads its config from $XDG_CONFIG_HOME/ghostty/config on both
+# macOS and Linux.
+ghostty_config_dir: "{{ xdg_config_home | default(ansible_env.HOME ~ '/.config') }}/ghostty"
+
 # --- macOS (Homebrew) ---------------------------------------------------------
 # Ghostty is distributed as a Homebrew cask.
 ghostty_brew_cask: "ghostty"

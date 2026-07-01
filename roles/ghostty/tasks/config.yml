@@ -1,0 +1,20 @@
+---
+# Deploy the Ghostty configuration.
+
+- name: Ensure ghostty config directory exists
+  ansible.builtin.file:
+    path: "{{ ghostty_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Deploy ghostty themes
+  ansible.builtin.copy:
+    src: config/ghostty/themes/
+    dest: "{{ ghostty_config_dir }}/themes/"
+    mode: "0644"
+
+- name: Deploy ghostty configuration
+  ansible.builtin.copy:
+    src: config/ghostty/config
+    dest: "{{ ghostty_config_dir }}/config"
+    mode: "0644"
