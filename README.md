@@ -19,11 +19,12 @@ scripts, managed as Ansible playbooks.
 ```
 
 There is no committed `site.yml`: `provision.sh` is the source of truth for the
-top-level playbook. It lets you pick a container engine (Docker or Podman) and
+top-level playbook. It lets you pick a container engine (Docker or Podman),
 whether to install GUI applications (the Ghostty terminal — handy to skip on a
-headless or remote box), writes a temporary playbook listing every selected
-role plus that engine, and applies it. `group_vars`/`host_vars` live next to the
-inventory so they load regardless of where that generated playbook sits.
+headless or remote box), and whether to install Claude Code, writes a temporary
+playbook listing every selected role plus that engine, and applies it.
+`group_vars`/`host_vars` live next to the inventory so they load regardless of
+where that generated playbook sits.
 
 ## Usage
 
@@ -37,11 +38,14 @@ itself, so there's no separate setup step.
 # Apply
 ./provision.sh
 
-# Skip the prompts by pinning the engine and GUI choice
-CONTAINER_ENGINE=podman INSTALL_GUI=no ./provision.sh
+# Skip the prompts by pinning the engine, GUI, and Claude Code choices
+CONTAINER_ENGINE=podman INSTALL_GUI=no INSTALL_CLAUDE=no ./provision.sh
 
 # Skip installing GUI applications (e.g. on a headless / remote box)
 ./provision.sh --skip-gui
+
+# Skip installing Claude Code
+./provision.sh --skip-claude
 
 # Change a remembered pick
 ./provision.sh --reconfigure
@@ -53,4 +57,5 @@ CONTAINER_ENGINE=podman INSTALL_GUI=no ./provision.sh
 Your picks are remembered in `.provision.env` (git-ignored), so later runs skip
 the prompts. Precedence for the engine is `CONTAINER_ENGINE` env var > saved
 state > prompt; for GUI apps it is `--skip-gui` > `INSTALL_GUI` env var > saved
-state > prompt. Any other arguments are forwarded to `ansible-playbook`.
+state > prompt; for Claude Code it is `--skip-claude` > `INSTALL_CLAUDE` env var
+> saved state > prompt. Any other arguments are forwarded to `ansible-playbook`.
