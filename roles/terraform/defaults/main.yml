@@ -3,6 +3,7 @@
 
 # Built from source by cloning the repo and running `go build`. Version is a
 # git ref: a release tag like "v1.15.6" or a branch like "main".
+# renovate: datasource=github-releases depName=hashicorp/terraform
 terraform_version: "v1.15.6"
 terraform_module: "github.com/hashicorp/terraform"
 # Directory the compiled terraform binary is placed in.

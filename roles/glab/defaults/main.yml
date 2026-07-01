@@ -2,6 +2,7 @@
 # Default variables for the glab role.
 
 # glab release to install on Linux (https://gitlab.com/gitlab-org/cli/-/releases).
+# renovate: datasource=gitlab-releases depName=gitlab-org/cli registryUrl=https://gitlab.com extractVersion=^v(?<version>.+)$
 glab_version: "1.103.0"
 # Directory the glab binary is installed into (Linux).
 glab_install_dir: "/usr/local/bin"

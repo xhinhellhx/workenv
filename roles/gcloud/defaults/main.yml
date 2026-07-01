@@ -6,6 +6,8 @@ gcloud_brew_cask: "google-cloud-sdk"
 
 # Linux: install a pinned Google Cloud CLI from the official tarball.
 # Release notes / versions: https://cloud.google.com/sdk/docs/release-notes
+# Tracked via the google/cloud-sdk image tags, which mirror CLI versions.
+# renovate: datasource=docker depName=google/cloud-sdk
 gcloud_version: "573.0.0"
 
 # Where the SDK is installed. The tarball contains a top-level

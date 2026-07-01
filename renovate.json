@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommitTypeAll(chore)"
+  ],
+  "timezone": "Etc/UTC",
+  "schedule": ["* 0-6 * * 1"],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "labels": ["dependencies"],
+  "pre-commit": {
+    "enabled": true
+  },
+  "ansible-galaxy": {
+    "managerFilePatterns": ["/(^|/)requirements\\.ya?ml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Roll every available update into a single weekly PR to keep noise low.",
+      "matchManagers": [
+        "custom.regex",
+        "pre-commit",
+        "ansible-galaxy",
+        "github-actions"
+      ],
+      "groupName": "all dependencies",
+      "groupSlug": "all"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Bump *_version vars in role defaults annotated with a `# renovate:` comment.",
+      "managerFilePatterns": ["/^roles/.+/defaults/main\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: packageName=(?<packageName>\\S+))?(?: registryUrl=(?<registryUrl>\\S+))?(?: versioning=(?<versioning>\\S+))?(?: extractVersion=(?<extractVersion>\\S+))?\\s*\\n\\s*\\w+_version:\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
+  ]
+}

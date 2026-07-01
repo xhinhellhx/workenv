@@ -2,6 +2,7 @@
 # Default variables for the helm role.
 
 # Helm release to install on Linux (https://github.com/helm/helm/releases).
+# renovate: datasource=github-releases depName=helm/helm extractVersion=^v(?<version>.+)$
 helm_version: "3.21.1"
 # Directory the helm binary is installed into (Linux).
 helm_install_dir: "/usr/local/bin"

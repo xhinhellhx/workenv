@@ -3,6 +3,7 @@
 
 # Go release to install (release tarballs are named without a leading "v",
 # e.g. go1.26.4).
+# renovate: datasource=golang-version depName=go
 golang_version: "1.26.4"
 
 # Where Go is installed (the tarball extracts a "go/" directory here's parent).

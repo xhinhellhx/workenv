@@ -1,6 +1,7 @@
 ---
 # Default variables for the golangci_lint role.
 
+# renovate: datasource=github-releases depName=golangci/golangci-lint extractVersion=^v(?<version>.+)$
 golangci_lint_version: "2.12.2"
 golangci_lint_install_dir: "/usr/local/bin"
 golangci_lint_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"

@@ -1,6 +1,7 @@
 ---
 # Default variables for the goreleaser role.
 
+# renovate: datasource=github-releases depName=goreleaser/goreleaser extractVersion=^v(?<version>.+)$
 goreleaser_version: "2.16.0"
 goreleaser_install_dir: "/usr/local/bin"
 goreleaser_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'x86_64' }}"

@@ -3,6 +3,7 @@
 
 nerd_fonts_repo: "https://github.com/ryanoasis/nerd-fonts"
 # Tag to clone (depth=1, single branch).
+# renovate: datasource=github-releases depName=ryanoasis/nerd-fonts
 nerd_fonts_version: "v3.4.0"
 # Where the repo is cloned.
 nerd_fonts_clone_dir: "{{ ansible_facts['env'].HOME }}/.cache/nerd-fonts"
