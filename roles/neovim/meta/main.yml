@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: neovim
+  author: xhinhellhx  
+description: Deploys personal Neovim configuration
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+dependencies: []

@@ -1,0 +1,78 @@
+---
+# Compile and install a pinned Neovim version from source on Linux.
+# Supports Debian/Ubuntu and the RHEL family (RHEL/Rocky/Alma/Fedora).
+
+- name: Install build dependencies (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ neovim_build_deps_debian }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Enable EPEL repository (RHEL family, excluding Fedora)
+  ansible.builtin.dnf:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+  become: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
+
+- name: Install build dependencies (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ neovim_build_deps_redhat }}"
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+
+- name: Fail on unsupported Linux distribution
+  ansible.builtin.fail:
+    msg: >-
+      Unsupported OS family '{{ ansible_os_family }}'. The neovim role builds
+      from source only on Debian/Ubuntu and RHEL-family systems.
+  when: ansible_os_family not in ["Debian", "RedHat"]
+
+- name: Check currently installed Neovim version
+  ansible.builtin.command: "{{ neovim_install_prefix }}/bin/nvim --version"
+  register: neovim_installed
+  changed_when: false
+  failed_when: false
+
+- name: Clone Neovim source at {{ neovim_version }}
+  ansible.builtin.git:
+    repo: https://github.com/neovim/neovim.git
+    dest: "{{ neovim_build_dir }}"
+    version: "{{ neovim_version }}"
+    depth: 1
+    force: true
+  become: true
+  register: neovim_source
+
+- name: Determine whether a (re)build is required
+  ansible.builtin.set_fact:
+    neovim_build_required: >-
+      {{ neovim_source.changed
+         or neovim_installed.rc != 0
+         or (neovim_version | regex_replace('^v', '')) not in neovim_installed.stdout }}
+
+- name: Build Neovim ({{ neovim_build_type }})
+  ansible.builtin.command:
+    cmd: >-
+      make
+      CMAKE_BUILD_TYPE={{ neovim_build_type }}
+      CMAKE_INSTALL_PREFIX={{ neovim_install_prefix }}
+    chdir: "{{ neovim_build_dir }}"
+  become: true
+  when: neovim_build_required
+  changed_when: true
+
+- name: Install Neovim
+  ansible.builtin.command:
+    cmd: make install
+    chdir: "{{ neovim_build_dir }}"
+  become: true
+  when: neovim_build_required
+  changed_when: true

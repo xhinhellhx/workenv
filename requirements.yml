@@ -1,0 +1,16 @@
+---
+# Galaxy roles and collections this repo depends on.
+# Install with: ansible-galaxy install -r requirements.yml
+collections:
+  # community.general provides the homebrew module used on macOS.
+  - name: community.general
+    version: ">=8.0.0,<11.0.0"
+    source: https://galaxy.ansible.com
+
+  # ansible.posix is pulled in transitively by several builtins; pin it so
+  # behaviour is reproducible across control nodes.
+  - name: ansible.posix
+    version: ">=1.5.0,<2.0.0"
+    source: https://galaxy.ansible.com
+
+roles: []

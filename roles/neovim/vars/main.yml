@@ -1,0 +1,36 @@
+---
+# Internal role variables (not intended to be overridden).
+
+# Build dependencies for compiling Neovim from source.
+# https://github.com/neovim/neovim/blob/master/BUILD.md
+neovim_build_deps_debian:
+  - build-essential
+  - cmake
+  - ninja-build
+  - gettext
+  - libtool
+  - libtool-bin
+  - autoconf
+  - automake
+  - pkg-config
+  - unzip
+  - curl
+  - git
+  - doxygen
+
+neovim_build_deps_redhat:
+  - gcc
+  - gcc-c++
+  - make
+  - cmake
+  - ninja-build
+  - gettext
+  - libtool
+  - autoconf
+  - automake
+  - pkgconfig
+  - patch
+  - unzip
+  - curl
+  - git
+  - glibc-gconv-extra

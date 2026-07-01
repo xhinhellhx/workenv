@@ -1,0 +1,4 @@
+---
+- name: Neovim config changed
+  ansible.builtin.debug:
+    msg: "Neovim configuration was updated in {{ neovim_config_dir }}"

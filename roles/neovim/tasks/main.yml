@@ -1,0 +1,13 @@
+---
+# Install Neovim, then deploy its configuration.
+
+- name: Install Neovim on macOS (Homebrew)
+  ansible.builtin.import_tasks: install-macos.yml
+  when: ansible_system == "Darwin"
+
+- name: Install Neovim on Linux (compile from source)
+  ansible.builtin.import_tasks: install-linux.yml
+  when: ansible_system == "Linux"
+
+- name: Deploy Neovim configuration
+  ansible.builtin.import_tasks: config.yml

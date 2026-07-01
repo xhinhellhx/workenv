@@ -1,0 +1,19 @@
+---
+# Default variables for the neovim role (override in group_vars/host_vars).
+
+# Where the Neovim config is deployed.
+neovim_config_dir: "{{ xdg_config_home | default(ansible_env.HOME ~ '/.config') }}/nvim"
+
+# --- Linux: build from source -------------------------------------------------
+# Git tag to build (https://github.com/neovim/neovim/releases).
+neovim_version: "v0.12.3"
+# Where the source tree is cloned/built.
+neovim_build_dir: "/usr/local/src/neovim"
+# Install prefix passed to the build (binary lands in <prefix>/bin/nvim).
+neovim_install_prefix: "/usr/local"
+# CMake build type: RelWithDebInfo (default), Release, or Debug.
+neovim_build_type: "RelWithDebInfo"
+
+# --- macOS: Homebrew ----------------------------------------------------------
+# Homebrew prefix differs between Apple Silicon and Intel.
+homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"

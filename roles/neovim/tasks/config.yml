@@ -1,0 +1,15 @@
+---
+# Deploy the Neovim configuration into the user's config directory.
+
+- name: Ensure neovim config directory exists
+  ansible.builtin.file:
+    path: "{{ neovim_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Copy neovim configuration files
+  ansible.builtin.copy:
+    src: config/nvim/
+    dest: "{{ neovim_config_dir }}/"
+    mode: "0644"
+  notify: Neovim config changed
