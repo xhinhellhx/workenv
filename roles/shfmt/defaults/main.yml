@@ -1,0 +1,7 @@
+---
+# Default variables for the shfmt role.
+
+shfmt_version: "3.13.1"
+shfmt_install_dir: "/usr/local/bin"
+shfmt_arch: "{{ 'arm64' if ansible_architecture in ['aarch64', 'arm64'] else 'amd64' }}"
+shfmt_download_url: "https://github.com/mvdan/sh/releases/download/v{{ shfmt_version }}/shfmt_v{{ shfmt_version }}_linux_{{ shfmt_arch }}"
