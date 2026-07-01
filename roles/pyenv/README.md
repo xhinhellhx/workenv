@@ -15,14 +15,20 @@ Homebrew is ensured by the `homebrew` role dependency.
 
 ## Shell integration
 
-Delivered as a zsh fragment at `~/.config/zsh/rc.d/20-pyenv.zsh` (sourced by the
-`zsh_config` skeleton after oh-my-zsh):
+Delivered as a zsh fragment at `~/.config/zsh/early.d/10-pyenv.zsh` (sourced by
+the `zsh_config` skeleton *before* oh-my-zsh):
 
 ```sh
 export PYENV_ROOT="$HOME/.pyenv"
 [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init - zsh)"
+eval "$(pyenv init --path)"
 ```
+
+It runs before oh-my-zsh on purpose: the oh-my-zsh `pyenv` plugin loads pyenv
+during startup and expects the shims to already be on `$PATH`, otherwise it
+warns `Found pyenv, but it is badly configured`. This fragment only sets up
+`$PATH` (`pyenv init --path`); the interactive init (`pyenv init -`, rehash,
+completions, virtualenv) is left to that plugin.
 
 > Requires the `zsh_config` role to source the fragment.
 

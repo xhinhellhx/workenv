@@ -1,17 +1,28 @@
 ---
-# Deliver pyenv shell init as a zsh rc.d fragment (sourced after oh-my-zsh).
+# Deliver pyenv PATH setup as an early zsh fragment (sourced before oh-my-zsh).
+#
+# The oh-my-zsh `pyenv` plugin loads pyenv during oh-my-zsh startup and expects
+# pyenv's shims to already be on $PATH; otherwise it prints "Found pyenv, but it
+# is badly configured (missing pyenv shims in $PATH)". We therefore put pyenv on
+# $PATH and run `pyenv init --path` *before* oh-my-zsh, and leave the interactive
+# init (`pyenv init -`, rehash, completions, virtualenv) to that plugin.
 
-- name: Ensure the zsh rc.d directory exists
+- name: Ensure the zsh early.d directory exists
   ansible.builtin.file:
-    path: "{{ zsh_fragment_dir }}/rc.d"
+    path: "{{ zsh_fragment_dir }}/early.d"
     state: directory
     mode: "0755"
 
-- name: Configure pyenv in the shell (rc.d fragment)
+- name: Remove the obsolete post-oh-my-zsh pyenv fragment
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/rc.d/20-pyenv.zsh"
+    state: absent
+
+- name: Configure pyenv on $PATH before oh-my-zsh (early.d fragment)
   ansible.builtin.copy:
-    dest: "{{ zsh_fragment_dir }}/rc.d/20-pyenv.zsh"
+    dest: "{{ zsh_fragment_dir }}/early.d/10-pyenv.zsh"
     mode: "0644"
     content: |
       export PYENV_ROOT="{{ pyenv_root }}"
       [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
-      eval "$(pyenv init - zsh)"
+      eval "$(pyenv init --path)"
