@@ -1,0 +1,56 @@
+---
+# Install Nerd Fonts from the upstream repo's install script.
+# Per-user install (no become): Linux -> ~/.local/share/fonts,
+# macOS -> ~/Library/Fonts. Supported on macOS, Debian/Ubuntu and RHEL family.
+
+- name: Install prerequisites (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ nerd_fonts_prereqs_debian }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Install prerequisites (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ nerd_fonts_prereqs_redhat }}"
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+
+- name: Check whether Nerd Fonts {{ nerd_fonts_version }} are already installed
+  ansible.builtin.stat:
+    path: "{{ nerd_fonts_state_file }}"
+  register: nerd_fonts_marker
+
+- name: Clone Nerd Fonts {{ nerd_fonts_version }}
+  ansible.builtin.git:
+    repo: "{{ nerd_fonts_repo }}.git"
+    dest: "{{ nerd_fonts_clone_dir }}"
+    version: "{{ nerd_fonts_version }}"
+    depth: 1
+    single_branch: true
+    force: true
+  when: nerd_fonts_force or not nerd_fonts_marker.stat.exists
+
+- name: Install Nerd Fonts
+  ansible.builtin.command:
+    cmd: "./install.sh {{ nerd_fonts_list | join(' ') }}"
+    chdir: "{{ nerd_fonts_clone_dir }}"
+  when: nerd_fonts_force or not nerd_fonts_marker.stat.exists
+  changed_when: true
+
+- name: Refresh font cache (Linux)
+  ansible.builtin.command: fc-cache -f
+  when:
+    - ansible_system == "Linux"
+    - nerd_fonts_force or not nerd_fonts_marker.stat.exists
+  changed_when: true
+
+- name: Mark Nerd Fonts as installed
+  ansible.builtin.file:
+    path: "{{ nerd_fonts_state_file }}"
+    state: touch
+    mode: "0644"
+  when: nerd_fonts_force or not nerd_fonts_marker.stat.exists

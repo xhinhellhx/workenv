@@ -1,0 +1,11 @@
+---
+# Internal role variables (not intended to be overridden).
+
+# Prerequisites: git to clone, fontconfig for fc-cache.
+nerd_fonts_prereqs_debian:
+  - git
+  - fontconfig
+
+nerd_fonts_prereqs_redhat:
+  - git
+  - fontconfig

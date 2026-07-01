@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  role_name: nerd_fonts
+  author: xhinhellhx
+  description: Installs Nerd Fonts via the upstream install script
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies: []
