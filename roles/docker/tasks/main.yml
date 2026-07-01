@@ -1,0 +1,54 @@
+---
+# Install Docker.
+#   - macOS: Docker Desktop via Homebrew cask (Homebrew ensured by dependency)
+#   - Linux: official convenience script, then enable the daemon and grant
+#     group access (Debian/Ubuntu and RHEL family).
+
+- name: Install Docker Desktop (macOS)
+  community.general.homebrew_cask:
+    name: "{{ docker_brew_cask }}"
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install Docker (Linux)
+  when: ansible_system == "Linux"
+  block:
+    - name: Check whether Docker is installed
+      ansible.builtin.command: docker --version
+      register: docker_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Download Docker install script
+      ansible.builtin.get_url:
+        url: "{{ docker_install_url }}"
+        dest: /tmp/get-docker.sh
+        mode: "0755"
+      when: docker_installed.rc != 0
+
+    - name: Run Docker install script
+      ansible.builtin.command: /bin/sh /tmp/get-docker.sh
+      become: true
+      when: docker_installed.rc != 0
+      changed_when: true
+
+    - name: Remove Docker install script
+      ansible.builtin.file:
+        path: /tmp/get-docker.sh
+        state: absent
+
+    - name: Enable and start the Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+      become: true
+
+    - name: Add users to the docker group
+      ansible.builtin.user:
+        name: "{{ item }}"
+        groups: docker
+        append: true
+      become: true
+      loop: "{{ docker_users }}"
