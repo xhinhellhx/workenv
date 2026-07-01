@@ -33,8 +33,15 @@
     mode: "0644"
   become: true
 
+- name: Check if {{ zsh_user }} is a local user in /etc/passwd
+  ansible.builtin.command: grep -q "^{{ zsh_user }}:" /etc/passwd
+  register: zsh_user_local
+  changed_when: false
+  failed_when: false
+
 - name: Set zsh as the default shell for {{ zsh_user }}
   ansible.builtin.user:
     name: "{{ zsh_user }}"
     shell: "{{ zsh_binary.stdout }}"
   become: true
+  when: zsh_user_local.rc == 0
