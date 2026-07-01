@@ -1,9 +1,9 @@
 ---
 # Install Claude Code.
-#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - macOS: official install script
 #   - Linux: official install script (Debian/Ubuntu and RHEL family)
 
-- name: Install Claude Code on macOS (Homebrew)
+- name: Install Claude Code on macOS (install script)
   ansible.builtin.import_tasks: install-macos.yml
   when: ansible_facts['system'] == "Darwin"
 

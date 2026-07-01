@@ -1,8 +1,33 @@
 ---
-# Install Claude Code on macOS via Homebrew.
+# Install Claude Code on macOS via the official install script.
 
-- name: Install Claude Code
-  community.general.homebrew:
-    name: "{{ claude_code_brew_package }}"
-    state: present
-    path: "{{ homebrew_prefix }}/bin"
+- name: Check whether Claude Code is installed
+  ansible.builtin.stat:
+    path: "{{ claude_code_bin }}"
+  register: claude_code_binary
+
+- name: Ensure cache directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env'].HOME }}/.cache"
+    state: directory
+    mode: "0755"
+  when: claude_code_force or not claude_code_binary.stat.exists
+
+- name: Download Claude Code install script
+  ansible.builtin.get_url:
+    url: "{{ claude_code_install_url }}"
+    dest: "{{ ansible_facts['env'].HOME }}/.cache/claude-install.sh"
+    mode: "0755"
+    force: true
+  when: claude_code_force or not claude_code_binary.stat.exists
+
+- name: Run Claude Code install script
+  ansible.builtin.command:
+    cmd: "{{ ansible_facts['env'].HOME }}/.cache/claude-install.sh {{ claude_code_version }}"
+  when: claude_code_force or not claude_code_binary.stat.exists
+  changed_when: true
+
+- name: Remove Claude Code install script
+  ansible.builtin.file:
+    path: "{{ ansible_facts['env'].HOME }}/.cache/claude-install.sh"
+    state: absent
