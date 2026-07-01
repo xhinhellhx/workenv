@@ -1,0 +1,25 @@
+---
+# Internal role variables (not intended to be overridden).
+
+# Build dependencies for compiling Ghostty from source.
+# https://ghostty.org/docs/install/build
+
+ghostty_build_deps_debian:
+  - build-essential
+  - git
+  - pkg-config
+  - libgtk-4-dev
+  - libadwaita-1-dev
+  - blueprint-compiler
+  - gettext
+  - libxml2-utils
+
+ghostty_build_deps_redhat:
+  - gcc
+  - git
+  - pkgconf-pkg-config
+  - gtk4-devel
+  - libadwaita-devel
+  - blueprint-compiler
+  - gettext
+  - libxml2

@@ -1,0 +1,8 @@
+---
+# Install Ghostty on macOS via Homebrew cask.
+
+- name: Install Ghostty
+  community.general.homebrew_cask:
+    name: "{{ ghostty_brew_cask }}"
+    state: present
+    path: "{{ homebrew_prefix }}/bin"

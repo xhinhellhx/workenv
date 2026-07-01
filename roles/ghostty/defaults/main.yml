@@ -1,0 +1,23 @@
+---
+# Default variables for the ghostty role.
+
+# --- macOS (Homebrew) ---------------------------------------------------------
+# Ghostty is distributed as a Homebrew cask.
+ghostty_brew_cask: "ghostty"
+
+# --- Linux (build from source) ------------------------------------------------
+# Ghostty git tag to build (https://github.com/ghostty-org/ghostty/tags).
+ghostty_version: "v1.1.3"
+# Source clone / build directory.
+ghostty_build_dir: "/usr/local/src/ghostty"
+# Install prefix (binary lands in <prefix>/bin/ghostty).
+ghostty_install_prefix: "/usr/local"
+# Zig optimisation mode: ReleaseFast, ReleaseSafe, or Debug.
+ghostty_optimize: "ReleaseFast"
+
+# Zig toolchain required to build Ghostty (must match the version Ghostty pins).
+# Ghostty v1.1.3 builds with Zig 0.13.0.
+ghostty_zig_version: "0.13.0"
+ghostty_zig_dir: "/opt/zig"
+ghostty_zig_arch: "{{ 'x86_64' if ansible_architecture in ['x86_64', 'amd64'] else 'aarch64' }}"
+ghostty_zig_url: "https://ziglang.org/download/{{ ghostty_zig_version }}/zig-linux-{{ ghostty_zig_arch }}-{{ ghostty_zig_version }}.tar.xz"

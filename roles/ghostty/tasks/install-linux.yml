@@ -1,0 +1,103 @@
+---
+# Build and install Ghostty from source on Linux.
+# Supports Debian/Ubuntu and the RHEL family (RHEL/Rocky/Alma/Fedora).
+
+- name: Install build dependencies (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ ghostty_build_deps_debian }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Enable EPEL repository (RHEL family, excluding Fedora)
+  ansible.builtin.dnf:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+  become: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
+
+- name: Install build dependencies (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ ghostty_build_deps_redhat }}"
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+
+- name: Fail on unsupported Linux distribution
+  ansible.builtin.fail:
+    msg: >-
+      Unsupported OS family '{{ ansible_os_family }}'. The ghostty role builds
+      from source only on Debian/Ubuntu and RHEL-family systems.
+  when: ansible_os_family not in ["Debian", "RedHat"]
+
+# --- Zig toolchain ------------------------------------------------------------
+- name: Check installed Zig version
+  ansible.builtin.command: "{{ ghostty_zig_dir }}/zig version"
+  register: zig_installed
+  changed_when: false
+  failed_when: false
+
+- name: Ensure Zig install directory exists
+  ansible.builtin.file:
+    path: "{{ ghostty_zig_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+  when: zig_installed.stdout != ghostty_zig_version
+
+- name: Download and extract Zig {{ ghostty_zig_version }}
+  ansible.builtin.unarchive:
+    src: "{{ ghostty_zig_url }}"
+    dest: "{{ ghostty_zig_dir }}"
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+  become: true
+  when: zig_installed.stdout != ghostty_zig_version
+
+- name: Symlink zig into PATH
+  ansible.builtin.file:
+    src: "{{ ghostty_zig_dir }}/zig"
+    dest: "/usr/local/bin/zig"
+    state: link
+  become: true
+
+# --- Ghostty build ------------------------------------------------------------
+- name: Check currently installed Ghostty version
+  ansible.builtin.command: "{{ ghostty_install_prefix }}/bin/ghostty --version"
+  register: ghostty_installed
+  changed_when: false
+  failed_when: false
+
+- name: Clone Ghostty source at {{ ghostty_version }}
+  ansible.builtin.git:
+    repo: https://github.com/ghostty-org/ghostty.git
+    dest: "{{ ghostty_build_dir }}"
+    version: "{{ ghostty_version }}"
+    depth: 1
+    force: true
+  become: true
+  register: ghostty_source
+
+- name: Determine whether a (re)build is required
+  ansible.builtin.set_fact:
+    ghostty_build_required: >-
+      {{ ghostty_source.changed
+         or ghostty_installed.rc != 0
+         or (ghostty_version | regex_replace('^v', '')) not in ghostty_installed.stdout }}
+
+- name: Build and install Ghostty ({{ ghostty_optimize }})
+  ansible.builtin.command:
+    cmd: >-
+      {{ ghostty_zig_dir }}/zig build
+      -Doptimize={{ ghostty_optimize }}
+      -p {{ ghostty_install_prefix }}
+    chdir: "{{ ghostty_build_dir }}"
+  become: true
+  when: ghostty_build_required
+  changed_when: true

@@ -1,0 +1,34 @@
+# ghostty role
+
+Installs the [Ghostty](https://ghostty.org) terminal emulator.
+
+| Platform        | Method                                                      |
+| --------------- | ----------------------------------------------------------- |
+| macOS           | Homebrew cask (`ghostty_brew_cask`)                         |
+| Debian / Ubuntu | Build from source with Zig at the pinned tag               |
+| RHEL family     | Build from source with Zig at the pinned tag               |
+
+On Linux the role installs all build dependencies (GTK4, libadwaita,
+blueprint-compiler, …), provisions the required Zig toolchain, clones the
+Ghostty source at `ghostty_version`, and rebuilds only when the installed
+version differs (idempotent). Homebrew is ensured by the `homebrew` role
+dependency.
+
+## Variables
+
+| Variable                  | Default            | Description                                   |
+| ------------------------- | ------------------ | --------------------------------------------- |
+| `ghostty_brew_cask`       | `ghostty`          | Homebrew cask name (macOS).                   |
+| `ghostty_version`         | `v1.1.3`           | Git tag built from source (Linux).            |
+| `ghostty_build_dir`       | `/usr/local/src/ghostty` | Source clone / build directory.         |
+| `ghostty_install_prefix`  | `/usr/local`       | Install prefix (`<prefix>/bin/ghostty`).      |
+| `ghostty_optimize`        | `ReleaseFast`      | Zig optimisation mode.                        |
+| `ghostty_zig_version`     | `0.13.0`           | Zig toolchain version (v1.1.3 → 0.13.0).      |
+| `ghostty_zig_dir`         | `/opt/zig`         | Where the Zig toolchain is installed.         |
+| `ghostty_zig_url`         | ziglang.org URL    | Zig tarball download URL.                     |
+
+## Layout
+
+- `tasks/install-macos.yml` — Homebrew cask install.
+- `tasks/install-linux.yml` — build deps, Zig toolchain, source build.
+- `vars/main.yml` — per-distro build dependency lists.

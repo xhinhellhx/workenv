@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: ghostty
+  author: xhinhellhx
+  description: Installs the Ghostty terminal emulator
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew
