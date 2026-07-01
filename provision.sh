@@ -92,6 +92,7 @@ COMMON_ROLES=(
 	helm
 	gcloud
 	glab
+	gh
 	plantuml
 	max_open_files
 )

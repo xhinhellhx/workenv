@@ -1,0 +1,15 @@
+---
+# Default variables for the gh role.
+
+# gh release to install (https://github.com/cli/cli/releases).
+# renovate: datasource=github-releases depName=cli/cli extractVersion=^v(?<version>.+)$
+gh_version: "2.95.0"
+
+# Directory the gh binary is installed into.
+gh_install_dir: "/usr/local/bin"
+
+# Download details (official release archive). gh names its assets with
+# amd64/arm64 for both macOS and Linux.
+gh_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
+gh_macos_download_url: "https://github.com/cli/cli/releases/download/v{{ gh_version }}/gh_{{ gh_version }}_macOS_{{ gh_arch }}.zip"
+gh_linux_download_url: "https://github.com/cli/cli/releases/download/v{{ gh_version }}/gh_{{ gh_version }}_linux_{{ gh_arch }}.tar.gz"
