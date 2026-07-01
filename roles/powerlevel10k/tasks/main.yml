@@ -1,0 +1,73 @@
+---
+# Install and configure Powerlevel10k. Plugin enablement lives in separate
+# roles; this role only delivers its own shell fragments. Depends on zsh_config.
+
+- name: Clone Powerlevel10k theme
+  ansible.builtin.git:
+    repo: "{{ p10k_theme_repo }}"
+    dest: "{{ p10k_dir }}"
+    version: master
+    depth: 1
+    update: false
+
+# --- Generate ~/.p10k.zsh from the chosen wizard template ---------------------
+- name: Generate ~/.p10k.zsh from the {{ p10k_style }} template
+  ansible.builtin.copy:
+    src: "{{ p10k_dir }}/config/p10k-{{ p10k_style }}.zsh"
+    dest: "{{ ansible_env.HOME }}/.p10k.zsh"
+    remote_src: true
+    force: false
+    mode: "0644"
+
+- name: Use a single-line prompt
+  ansible.builtin.replace:
+    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    regexp: '^[ \t]*newline\b.*\n'
+    replace: ''
+  when: p10k_one_line
+
+- name: Use a compact prompt (no blank line between commands)
+  ansible.builtin.replace:
+    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    regexp: 'POWERLEVEL9K_PROMPT_ADD_NEWLINE=true'
+    replace: 'POWERLEVEL9K_PROMPT_ADD_NEWLINE=false'
+  when: p10k_compact
+
+- name: Remove the clock from the prompt
+  ansible.builtin.replace:
+    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    regexp: '^[ \t]*time\b.*\n'
+    replace: ''
+  when: not p10k_show_time
+
+- name: Extend icon padding (fix glyph overlap, e.g. SauceCodePro)
+  ansible.builtin.replace:
+    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    regexp: 'POWERLEVEL9K_ICON_PADDING=none'
+    replace: 'POWERLEVEL9K_ICON_PADDING={{ p10k_icon_padding }}'
+  when: p10k_icon_padding != "none"
+
+# --- Shell fragments ----------------------------------------------------------
+- name: Deliver the Powerlevel10k instant prompt (early.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/early.d/00-p10k-instant-prompt.zsh"
+    mode: "0644"
+    content: |
+      # Powerlevel10k instant prompt. Must stay near the top of the config.
+      if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+        source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+      fi
+
+- name: Select the Powerlevel10k theme (plugins.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/plugins.d/10-powerlevel10k-theme.zsh"
+    mode: "0644"
+    content: |
+      ZSH_THEME="powerlevel10k/powerlevel10k"
+
+- name: Source the Powerlevel10k config after oh-my-zsh (rc.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/rc.d/90-powerlevel10k.zsh"
+    mode: "0644"
+    content: |
+      [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh

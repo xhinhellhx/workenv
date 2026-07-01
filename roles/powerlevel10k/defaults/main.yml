@@ -1,0 +1,16 @@
+---
+# Default variables for the powerlevel10k role.
+
+# oh-my-zsh custom dir (oh_my_zsh_dir comes from the oh_my_zsh role).
+omz_custom: "{{ oh_my_zsh_dir }}/custom"
+p10k_theme_repo: "https://github.com/romkatv/powerlevel10k.git"
+p10k_dir: "{{ omz_custom }}/themes/powerlevel10k"
+
+# --- Prompt configuration (from the configure wizard choices) -----------------
+p10k_style: "classic"        # classic | lean | rainbow | pure
+p10k_one_line: true          # single-line prompt
+p10k_compact: true           # no blank line between prompts
+p10k_show_time: false        # show the clock on the right
+# Spacing around icons (fixes glyph overlap with fonts like SauceCodePro):
+# none | moderate | extended.
+p10k_icon_padding: "moderate"
