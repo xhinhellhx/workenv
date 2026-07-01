@@ -101,3 +101,21 @@
   become: true
   when: ghostty_build_required
   changed_when: true
+
+# --- Desktop integration ------------------------------------------------------
+# The build installs com.mitchellh.ghostty.desktop and the application icons
+# under {{ ghostty_install_prefix }}/share, but the launcher only sees them once
+# the desktop and icon caches are rebuilt.
+- name: Refresh the desktop application database
+  ansible.builtin.command:
+    cmd: "update-desktop-database {{ ghostty_install_prefix }}/share/applications"
+  become: true
+  when: ghostty_build_required
+  changed_when: true
+
+- name: Refresh the hicolor icon cache
+  ansible.builtin.command:
+    cmd: "gtk-update-icon-cache --force {{ ghostty_install_prefix }}/share/icons/hicolor"
+  become: true
+  when: ghostty_build_required
+  changed_when: true

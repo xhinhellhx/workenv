@@ -13,6 +13,10 @@ ghostty_build_deps_debian:
   - blueprint-compiler
   - gettext
   - libxml2-utils
+  # Provides update-desktop-database / gtk-update-icon-cache so the freshly
+  # installed .desktop file and icons show up in the application launcher.
+  - desktop-file-utils
+  - libgtk-4-bin
 
 ghostty_build_deps_redhat:
   - gcc
@@ -23,3 +27,7 @@ ghostty_build_deps_redhat:
   - blueprint-compiler
   - gettext
   - libxml2
+  # Provides update-desktop-database / gtk-update-icon-cache so the freshly
+  # installed .desktop file and icons show up in the application launcher.
+  - desktop-file-utils
+  - gtk4

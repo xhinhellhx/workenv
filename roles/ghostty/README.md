@@ -11,8 +11,10 @@ Installs the [Ghostty](https://ghostty.org) terminal emulator.
 On Linux the role installs all build dependencies (GTK4, libadwaita,
 blueprint-compiler, …), provisions the required Zig toolchain, clones the
 Ghostty source at `ghostty_version`, and rebuilds only when the installed
-version differs (idempotent). Homebrew is ensured by the `homebrew` role
-dependency.
+version differs (idempotent). After a build it refreshes the desktop
+application and icon caches (`update-desktop-database` / `gtk-update-icon-cache`)
+so Ghostty appears in the application launcher. Homebrew is ensured by the
+`homebrew` role dependency.
 
 ## Variables
 
@@ -42,7 +44,7 @@ on both macOS and Linux). Current settings:
 ## Layout
 
 - `tasks/install-macos.yml` — Homebrew cask install.
-- `tasks/install-linux.yml` — build deps, Zig toolchain, source build.
+- `tasks/install-linux.yml` — build deps, Zig toolchain, source build, desktop/icon cache refresh.
 - `tasks/config.yml` — deploys the config file and bundled themes.
 - `vars/main.yml` — per-distro build dependency lists.
 - `files/config/ghostty/config` — the deployed Ghostty config.
