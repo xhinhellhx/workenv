@@ -1,0 +1,23 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Shell scripts: indent with tabs (displayed as 8 columns). shfmt reads these
+# keys (indent_style + switch_case_indent) when run without -i/-ci flags.
+[*.sh]
+indent_style = tab
+tab_width = 8
+switch_case_indent = true
+binary_next_line = true
+
+# YAML (Ansible) uses 2-space indentation.
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
