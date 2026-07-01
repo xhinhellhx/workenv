@@ -1,0 +1,8 @@
+---
+# Default variables for the dockle role.
+
+# renovate: datasource=github-releases depName=goodwithtech/dockle extractVersion=^v(?<version>.+)$
+dockle_version: "0.4.15"
+dockle_install_dir: "/usr/local/bin"
+dockle_arch: "{{ 'ARM64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else '64bit' }}"
+dockle_download_url: "https://github.com/goodwithtech/dockle/releases/download/v{{ dockle_version }}/dockle_{{ dockle_version }}_Linux-{{ dockle_arch }}.tar.gz"

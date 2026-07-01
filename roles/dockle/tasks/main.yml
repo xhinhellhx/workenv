@@ -1,0 +1,34 @@
+---
+# Install dockle (container image linter).
+#   - macOS: Homebrew tap goodwithtech/r (Homebrew ensured by the `homebrew`
+#     role dependency; the fully-qualified name auto-taps on install)
+#   - Linux: official release tarball -> /usr/local/bin
+
+- name: Install dockle (macOS, Homebrew)
+  community.general.homebrew:
+    name: goodwithtech/r/dockle
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install dockle (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed dockle version
+      ansible.builtin.command: "{{ dockle_install_dir }}/dockle --version"
+      register: dockle_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Download and extract the dockle binary, version {{ dockle_version }}
+      ansible.builtin.unarchive:
+        src: "{{ dockle_download_url }}"
+        dest: "{{ dockle_install_dir }}"
+        remote_src: true
+        include:
+          - dockle
+        mode: "0755"
+        owner: root
+        group: root
+      become: true
+      when: dockle_version not in dockle_installed.stdout
