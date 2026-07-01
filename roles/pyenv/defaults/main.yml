@@ -24,5 +24,5 @@ pyenv_brew_packages:
   - libffi
 
 # --- Shell integration --------------------------------------------------------
-# Shell rc file to add the pyenv init block to.
-pyenv_shellrc: "{{ ansible_env.HOME }}/.zshrc"
+# pyenv init is delivered as a zsh fragment at
+# {{ zsh_fragment_dir }}/rc.d/20-pyenv.zsh (see the zsh_config role).

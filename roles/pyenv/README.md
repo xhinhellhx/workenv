@@ -15,13 +15,16 @@ Homebrew is ensured by the `homebrew` role dependency.
 
 ## Shell integration
 
-A managed block is added to `pyenv_shellrc` (default `~/.zshrc`):
+Delivered as a zsh fragment at `~/.config/zsh/rc.d/20-pyenv.zsh` (sourced by the
+`zsh_config` skeleton after oh-my-zsh):
 
 ```sh
 export PYENV_ROOT="$HOME/.pyenv"
 [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init - zsh)"
 ```
+
+> Requires the `zsh_config` role to source the fragment.
 
 ## Variables
 
@@ -31,7 +34,6 @@ eval "$(pyenv init - zsh)"
 | `pyenv_version`      | `""`             | Git ref to check out (empty = latest).        |
 | `pyenv_update`       | `false`          | Update an existing checkout on re-run.        |
 | `pyenv_brew_packages`| pyenv + deps     | Homebrew formulae installed on macOS.         |
-| `pyenv_shellrc`      | `~/.zshrc`       | Shell rc file to add the init block to.       |
 
 ## Usage
 

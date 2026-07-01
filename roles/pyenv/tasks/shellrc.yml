@@ -1,13 +1,17 @@
 ---
-# Add the pyenv initialisation block to the shell rc file.
+# Deliver pyenv shell init as a zsh rc.d fragment (sourced after oh-my-zsh).
 
-- name: Configure pyenv in {{ pyenv_shellrc | basename }}
-  ansible.builtin.blockinfile:
-    path: "{{ pyenv_shellrc }}"
-    create: true
+- name: Ensure the zsh rc.d directory exists
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/rc.d"
+    state: directory
+    mode: "0755"
+
+- name: Configure pyenv in the shell (rc.d fragment)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/rc.d/20-pyenv.zsh"
     mode: "0644"
-    marker: "# {mark} ANSIBLE MANAGED: pyenv"
-    block: |
+    content: |
       export PYENV_ROOT="{{ pyenv_root }}"
       [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
       eval "$(pyenv init - zsh)"
