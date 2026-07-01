@@ -10,4 +10,6 @@ galaxy_info:
     - name: Debian
     - name: Ubuntu
     - name: EL
-dependencies: []
+dependencies:
+  - role: homebrew
+    when: ansible_facts['system'] == "Darwin"

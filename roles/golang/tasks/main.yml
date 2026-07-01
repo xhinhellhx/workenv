@@ -19,6 +19,16 @@
   become: true
   when: golang_install_required
 
+# Ansible's unarchive module rejects macOS's stock BSD tar ("GNU tar
+# required") and auto-detects GNU tar as `gtar` on PATH. Homebrew's gnu-tar
+# provides exactly that.
+- name: Install GNU tar (macOS, required by unarchive)
+  community.general.homebrew:
+    name: gnu-tar
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin" and golang_install_required
+
 - name: Download and extract Go {{ golang_version }}
   ansible.builtin.unarchive:
     src: "{{ golang_download_url }}"
