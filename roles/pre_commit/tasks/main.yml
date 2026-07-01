@@ -43,3 +43,21 @@
       community.general.pipx:
         name: pre-commit
         state: present
+
+# Auto-install hooks on `git clone` / `git init` via a global git template.
+- name: Ensure the git template directory exists
+  ansible.builtin.file:
+    path: "{{ git_template_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Point git's init.templateDir at the template
+  community.general.git_config:
+    name: init.templateDir
+    value: "{{ git_template_dir }}"
+    scope: global
+
+- name: Install the pre-commit hook into the git template
+  ansible.builtin.command: "{{ pre_commit_bin }} init-templatedir {{ git_template_dir }}"
+  args:
+    creates: "{{ git_template_dir }}/hooks/pre-commit"
