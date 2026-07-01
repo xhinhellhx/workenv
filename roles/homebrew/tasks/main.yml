@@ -1,0 +1,19 @@
+---
+# Ensure Homebrew is installed (macOS only; no-op elsewhere).
+
+- name: Check whether Homebrew is installed
+  ansible.builtin.stat:
+    path: "{{ homebrew_prefix }}/bin/brew"
+  register: homebrew_binary
+
+- name: Install Homebrew
+  ansible.builtin.shell:
+    cmd: >-
+      /bin/bash -c
+      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  environment:
+    NONINTERACTIVE: "1"
+  when:
+    - ansible_system == "Darwin"
+    - not homebrew_binary.stat.exists
+  changed_when: true

@@ -1,0 +1,4 @@
+---
+# Default variables for the homebrew role.
+# Homebrew prefix differs between Apple Silicon and Intel Macs.
+homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"

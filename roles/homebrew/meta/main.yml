@@ -1,0 +1,10 @@
+---
+galaxy_info:
+  role_name: homebrew
+  author: xhinhellhx
+  description: Ensures Homebrew is installed on macOS
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+dependencies: []
