@@ -7,7 +7,15 @@
 docker_brew_formulae:
   - docker
   - docker-compose
+  - docker-buildx
   - colima
+
+# macOS: directory registered in ~/.docker/config.json's cliPluginsExtraDirs so
+# the docker CLI discovers Homebrew-installed plugins (`docker compose`,
+# `docker buildx`, ...). Every Homebrew docker plugin formula drops its binary
+# here. On Linux the get.docker.com script installs the equivalent *-plugin
+# packages system-wide, so this is macOS-only.
+docker_cli_plugins_dir: "{{ homebrew_prefix }}/lib/docker/cli-plugins"
 
 # Linux: users added to the `docker` group (to run docker without sudo).
 docker_users:

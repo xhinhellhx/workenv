@@ -14,19 +14,41 @@
         state: present
         path: "{{ homebrew_prefix }}/bin"
 
-    # `docker compose` (v2 subcommand) needs the formula linked as a CLI plugin.
-    - name: Ensure the Docker CLI plugins directory exists
+    # Homebrew installs the Docker CLI plugins (compose, buildx) into
+    # {{ docker_cli_plugins_dir }} as standalone formulae. Register that
+    # directory in ~/.docker/config.json's cliPluginsExtraDirs so the docker CLI
+    # discovers them (`docker compose`, `docker buildx`). This is the layout
+    # Homebrew's caveats recommend and auto-picks-up every Homebrew docker plugin
+    # without enumerating them.
+    - name: Ensure the Docker config directory exists
       ansible.builtin.file:
-        path: "{{ ansible_facts['env'].HOME }}/.docker/cli-plugins"
+        path: "{{ ansible_facts['env'].HOME }}/.docker"
         state: directory
         mode: "0755"
 
-    - name: Link docker-compose as a Docker CLI plugin (enables `docker compose`)
-      ansible.builtin.file:
-        src: "{{ homebrew_prefix }}/opt/docker-compose/bin/docker-compose"
-        dest: "{{ ansible_facts['env'].HOME }}/.docker/cli-plugins/docker-compose"
-        state: link
-        force: true
+    - name: Read the existing Docker config.json (if present)
+      ansible.builtin.slurp:
+        src: "{{ ansible_facts['env'].HOME }}/.docker/config.json"
+      register: docker_config_raw
+      failed_when: false
+
+    - name: Parse the existing Docker config.json (default to empty)
+      ansible.builtin.set_fact:
+        docker_config_current: >-
+          {{ (docker_config_raw.content | b64decode | from_json)
+             if docker_config_raw.content is defined else {} }}
+
+    # Merge our plugins dir into cliPluginsExtraDirs, preserving every other key
+    # (auths, credsStore, currentContext, ...) and any dirs already listed.
+    - name: Register the Homebrew CLI plugins dir in ~/.docker/config.json
+      ansible.builtin.copy:
+        dest: "{{ ansible_facts['env'].HOME }}/.docker/config.json"
+        mode: "0600"
+        content: >-
+          {{ docker_config_current | combine({
+               'cliPluginsExtraDirs':
+                 (docker_config_current.cliPluginsExtraDirs | default([]) + [docker_cli_plugins_dir]) | unique
+             }) | to_nice_json }}
 
     - name: Ensure the user LaunchAgents directory exists
       ansible.builtin.file:
