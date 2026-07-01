@@ -1,5 +1,8 @@
 ---
-# Install Terraform from source with `go install`.
+# Build Terraform from source.
+# `go install pkg@version` cannot build Terraform: its go.mod uses `replace`
+# directives, which `go install` rejects. We clone the repo and `go build`
+# inside the checkout, where replace directives are honored.
 # Cross-platform; the Go toolchain is provided by the `golang` role dependency.
 
 - name: Check whether terraform is installed
@@ -8,11 +11,33 @@
   changed_when: false
   failed_when: false
 
-- name: Install Terraform from source (go install)
-  ansible.builtin.command: "{{ golang_install_dir }}/bin/go install {{ terraform_module }}@{{ terraform_version }}"
-  environment:
-    GOPATH: "{{ ansible_env.HOME }}/go"
-    GOBIN: "{{ terraform_gobin }}"
-    PATH: "{{ golang_install_dir }}/bin:{{ ansible_env.PATH }}"
+- name: Build Terraform from source
   when: terraform_force or terraform_installed.rc != 0
-  changed_when: true
+  block:
+    - name: Create temporary build directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: terraform-build
+      register: terraform_build_dir
+
+    - name: Clone Terraform repository at {{ terraform_version }}
+      ansible.builtin.git:
+        repo: "https://{{ terraform_module }}.git"
+        dest: "{{ terraform_build_dir.path }}"
+        version: "{{ terraform_version }}"
+        depth: 1
+
+    - name: Compile and install the terraform binary
+      ansible.builtin.command:
+        cmd: "{{ golang_install_dir }}/bin/go build -o {{ terraform_gobin }}/terraform ."
+        chdir: "{{ terraform_build_dir.path }}"
+      environment:
+        GOPATH: "{{ ansible_env.HOME }}/go"
+        PATH: "{{ golang_install_dir }}/bin:{{ ansible_env.PATH }}"
+      changed_when: true
+  always:
+    - name: Remove temporary build directory
+      ansible.builtin.file:
+        path: "{{ terraform_build_dir.path }}"
+        state: absent
+      when: terraform_build_dir.path is defined

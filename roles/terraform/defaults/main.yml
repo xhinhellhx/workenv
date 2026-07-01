@@ -1,11 +1,11 @@
 ---
 # Default variables for the terraform role.
 
-# Built from source with `go install`. Version is a module query:
-# "latest" or a tag like "v1.9.8".
-terraform_version: "latest"
+# Built from source by cloning the repo and running `go build`. Version is a
+# git ref: a release tag like "v1.15.6" or a branch like "main".
+terraform_version: "v1.15.6"
 terraform_module: "github.com/hashicorp/terraform"
-# Where `go install` places the binary (GOBIN).
+# Directory the compiled terraform binary is placed in.
 terraform_gobin: "{{ ansible_env.HOME }}/go/bin"
 # Re-run `go install` even if the binary is already present.
 terraform_force: false
