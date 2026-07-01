@@ -33,7 +33,7 @@
     mode: "0644"
   become: true
 
-- name: Check if {{ zsh_user }} is a local user in /etc/passwd
+- name: "Check if local user in /etc/passwd: {{ zsh_user }}"
   ansible.builtin.command: grep -q "^{{ zsh_user }}:" /etc/passwd
   register: zsh_user_local
   changed_when: false
