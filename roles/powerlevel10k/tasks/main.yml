@@ -84,6 +84,35 @@
     content: |
       [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
+# --- Fewer icons --------------------------------------------------------------
+# Layered over ~/.p10k.zsh (sourced at 92-, after the 90- that sources it).
+- name: Trim decorative prompt icons (rc.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/rc.d/92-powerlevel10k-fewer-icons.zsh"
+    mode: "0644"
+    content: |
+      # Fewer prompt icons (managed by Ansible). Keeps the Git branch glyph; drops
+      # the directory folder icon and the status check/cross icons.
+
+      # Directory: drop the folder/home icon.
+      typeset -g POWERLEVEL9K_DIR_VISUAL_IDENTIFIER_EXPANSION=
+
+      # Success: no icon — the prompt char already turns green on success.
+      typeset -g POWERLEVEL9K_STATUS_OK=false
+      typeset -g POWERLEVEL9K_STATUS_OK_PIPE=false
+
+      # Errors: keep the exit code, drop the ✘ glyph.
+      typeset -g POWERLEVEL9K_STATUS_ERROR_VISUAL_IDENTIFIER_EXPANSION=
+      typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_VISUAL_IDENTIFIER_EXPANSION=
+      typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_VISUAL_IDENTIFIER_EXPANSION=
+  when: p10k_few_icons
+
+- name: Remove the fewer-icons fragment when disabled
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/rc.d/92-powerlevel10k-fewer-icons.zsh"
+    state: absent
+  when: not p10k_few_icons
+
 # --- Solarized palette --------------------------------------------------------
 # Layered over the generated ~/.p10k.zsh. Sourced at 91-… (after the 90-… that
 # sources ~/.p10k.zsh); p10k reads POWERLEVEL9K_* parameters lazily at prompt

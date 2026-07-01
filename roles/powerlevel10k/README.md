@@ -23,6 +23,8 @@ prompt. Plugin installation/enablement lives in separate roles
 | `p10k_compact`      | `true`     | No blank line between prompts.                      |
 | `p10k_show_time`    | `false`    | No clock segment.                                   |
 | `p10k_icon_padding` | `moderate` | Extra icon spacing — fixes glyph overlap (SauceCodePro). |
+| `p10k_few_icons`    | `true`     | Drop the directory and status icons (keeps the Git branch glyph). |
+| `p10k_solarized`    | `dark`     | Layer a Solarized palette over the prompt (off/dark/light). |
 
 > `~/.p10k.zsh` is generated with `force: false`, so it is not overwritten once
 > present. Delete it (or run `p10k configure`) to regenerate.
