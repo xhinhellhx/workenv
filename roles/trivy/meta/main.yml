@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: trivy
+  author: xhinhellhx
+  description: Installs trivy (container/IaC vulnerability scanner)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew
+    when: ansible_facts['system'] == "Darwin"

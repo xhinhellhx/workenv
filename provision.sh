@@ -72,6 +72,7 @@ COMMON_ROLES=(
 	shfmt
 	hadolint
 	dockle
+	trivy
 	nvm
 	node
 	pyenv

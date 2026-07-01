@@ -1,0 +1,34 @@
+---
+# Install trivy (container/IaC vulnerability scanner).
+#   - macOS: Homebrew (trivy is in homebrew-core; Homebrew ensured by the
+#     `homebrew` role dependency)
+#   - Linux: official release tarball -> /usr/local/bin
+
+- name: Install trivy (macOS, Homebrew)
+  community.general.homebrew:
+    name: trivy
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install trivy (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed trivy version
+      ansible.builtin.command: "{{ trivy_install_dir }}/trivy --version"
+      register: trivy_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Download and extract the trivy binary, version {{ trivy_version }}
+      ansible.builtin.unarchive:
+        src: "{{ trivy_download_url }}"
+        dest: "{{ trivy_install_dir }}"
+        remote_src: true
+        include:
+          - trivy
+        mode: "0755"
+        owner: root
+        group: root
+      become: true
+      when: trivy_version not in trivy_installed.stdout

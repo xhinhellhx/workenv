@@ -1,0 +1,8 @@
+---
+# Default variables for the trivy role.
+
+# renovate: datasource=github-releases depName=aquasecurity/trivy extractVersion=^v(?<version>.+)$
+trivy_version: "0.71.2"
+trivy_install_dir: "/usr/local/bin"
+trivy_arch: "{{ 'ARM64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else '64bit' }}"
+trivy_download_url: "https://github.com/aquasecurity/trivy/releases/download/v{{ trivy_version }}/trivy_{{ trivy_version }}_Linux-{{ trivy_arch }}.tar.gz"
