@@ -1,0 +1,26 @@
+# ~/.zshrc — managed by Ansible (zsh_config role).
+# Configuration is assembled by-parts from fragments under
+# {{ zsh_fragment_dir }}. Do not edit directly; add fragments instead.
+
+# Source every *.zsh file in a directory, in lexical order.
+_zsh_source_dir() {
+  local dir="$1" f
+  [[ -d "$dir" ]] || return 0
+  for f in "$dir"/*.zsh(N); do
+    [[ -r "$f" ]] && source "$f"
+  done
+}
+
+# Early fragments: run first (e.g. Powerlevel10k instant prompt).
+_zsh_source_dir "{{ zsh_fragment_dir }}/early.d"
+
+export ZSH="{{ oh_my_zsh_dir }}"
+plugins=()
+
+# Pre-oh-my-zsh fragments: set ZSH_THEME and append to `plugins`.
+_zsh_source_dir "{{ zsh_fragment_dir }}/plugins.d"
+
+[[ -r "$ZSH/oh-my-zsh.sh" ]] && source "$ZSH/oh-my-zsh.sh"
+
+# Post-oh-my-zsh fragments: tool initialisation, prompt config.
+_zsh_source_dir "{{ zsh_fragment_dir }}/rc.d"

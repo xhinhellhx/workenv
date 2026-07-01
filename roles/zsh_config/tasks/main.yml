@@ -1,0 +1,16 @@
+---
+# Lay down the ~/.zshrc skeleton and the fragment directories it sources.
+# Other roles deliver their shell config by dropping fragments into these dirs.
+
+- name: Ensure the zsh fragment directories exist
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ zsh_fragment_subdirs }}"
+
+- name: Deploy the ~/.zshrc skeleton
+  ansible.builtin.template:
+    src: zshrc.j2
+    dest: "{{ zsh_shellrc }}"
+    mode: "0644"
