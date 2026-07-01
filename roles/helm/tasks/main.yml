@@ -1,0 +1,55 @@
+---
+# Install Helm.
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Linux: official get-helm-3 script (Debian/Ubuntu and RHEL family)
+
+- name: Install Helm (macOS, Homebrew)
+  community.general.homebrew:
+    name: helm
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install Helm (Linux)
+  when: ansible_system == "Linux"
+  block:
+    - name: Check whether Helm is installed
+      ansible.builtin.command: helm version
+      register: helm_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install Helm from the official script
+      when: helm_force or helm_installed.rc != 0
+      block:
+        - name: Install curl (Debian/Ubuntu)
+          ansible.builtin.apt:
+            name: curl
+            state: present
+            update_cache: true
+            cache_valid_time: 3600
+          become: true
+          when: ansible_os_family == "Debian"
+
+        - name: Install curl (RHEL family)
+          ansible.builtin.dnf:
+            name: curl
+            state: present
+          become: true
+          when: ansible_os_family == "RedHat"
+
+        - name: Download the Helm install script
+          ansible.builtin.get_url:
+            url: "{{ helm_install_script_url }}"
+            dest: /tmp/get-helm-3
+            mode: "0755"
+
+        - name: Run the Helm install script
+          ansible.builtin.command: /bin/bash /tmp/get-helm-3
+          become: true
+          changed_when: true
+
+        - name: Remove the Helm install script
+          ansible.builtin.file:
+            path: /tmp/get-helm-3
+            state: absent

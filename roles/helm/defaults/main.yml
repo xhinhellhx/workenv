@@ -1,0 +1,7 @@
+---
+# Default variables for the helm role.
+
+# Official Helm 3 install script (Linux). Installs the latest release.
+helm_install_script_url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+# Re-run the installer even if helm is already present (to upgrade).
+helm_force: false
