@@ -1,0 +1,30 @@
+---
+# Install Bazel.
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Linux: official standalone release binary -> /usr/local/bin
+
+- name: Install Bazel (macOS, Homebrew)
+  community.general.homebrew:
+    name: bazel
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install Bazel (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed Bazel version
+      ansible.builtin.command: "{{ bazel_install_dir }}/bazel --version"
+      register: bazel_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install Bazel from the release binary, version {{ bazel_version }}
+      when: bazel_force or bazel_version not in bazel_installed.stdout
+      block:
+        - name: Download and install the bazel binary
+          ansible.builtin.get_url:
+            url: "{{ bazel_download_url }}"
+            dest: "{{ bazel_install_dir }}/bazel"
+            mode: "0755"
+          become: true
