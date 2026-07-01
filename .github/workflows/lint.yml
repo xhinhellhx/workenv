@@ -1,0 +1,40 @@
+name: lint
+
+# Runs the same checks as the local pre-commit hooks
+# (ansible-lint, shellcheck, shfmt) on every push and PR.
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible-lint's Galaxy collection dependencies
+        # ansible-lint runs in its own pre-commit venv but resolves collections
+        # from the default user path (~/.ansible/collections), so install them
+        # here first. Mirrors `ansible-galaxy install -r requirements.yml`.
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core
+          ansible-galaxy install -r requirements.yml
+
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
