@@ -8,10 +8,10 @@
     name: goreleaser
     state: present
     path: "{{ homebrew_prefix }}/bin"
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install goreleaser (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
   block:
     - name: Check installed goreleaser version
       ansible.builtin.command: "{{ goreleaser_install_dir }}/goreleaser --version"

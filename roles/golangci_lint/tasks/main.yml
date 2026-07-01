@@ -8,10 +8,10 @@
     name: golangci-lint
     state: present
     path: "{{ homebrew_prefix }}/bin"
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install golangci-lint (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
   block:
     - name: Check installed golangci-lint version
       ansible.builtin.command: "{{ golangci_lint_install_dir }}/golangci-lint --version"

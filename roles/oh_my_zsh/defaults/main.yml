@@ -3,6 +3,6 @@
 
 oh_my_zsh_install_url: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
 # Install location (per-user).
-oh_my_zsh_dir: "{{ ansible_env.HOME }}/.oh-my-zsh"
+oh_my_zsh_dir: "{{ ansible_facts['env'].HOME }}/.oh-my-zsh"
 # Keep an existing ~/.zshrc instead of letting the installer replace it.
 oh_my_zsh_keep_zshrc: true

@@ -5,7 +5,7 @@
 #     group access (Debian/Ubuntu and RHEL family).
 
 - name: Install and auto-start Docker Desktop (macOS)
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
   block:
     - name: Install Docker Desktop (macOS)
       community.general.homebrew_cask:
@@ -15,13 +15,13 @@
 
     - name: Ensure the user LaunchAgents directory exists
       ansible.builtin.file:
-        path: "{{ ansible_env.HOME }}/Library/LaunchAgents"
+        path: "{{ ansible_facts['env'].HOME }}/Library/LaunchAgents"
         state: directory
         mode: "0755"
 
     - name: Start Docker Desktop at login (LaunchAgent)
       ansible.builtin.copy:
-        dest: "{{ ansible_env.HOME }}/Library/LaunchAgents/com.workenv.docker-autostart.plist"
+        dest: "{{ ansible_facts['env'].HOME }}/Library/LaunchAgents/com.workenv.docker-autostart.plist"
         mode: "0644"
         content: |
           <?xml version="1.0" encoding="UTF-8"?>
@@ -43,7 +43,7 @@
           </plist>
 
 - name: Install Docker (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
   block:
     - name: Check whether Docker is installed
       ansible.builtin.command: docker --version

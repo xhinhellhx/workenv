@@ -5,8 +5,8 @@
 
 - name: Install Claude Code on macOS (Homebrew)
   ansible.builtin.import_tasks: install-macos.yml
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install Claude Code on Linux (install script)
   ansible.builtin.import_tasks: install-linux.yml
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"

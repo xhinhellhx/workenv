@@ -11,4 +11,4 @@ galaxy_info:
     - name: Ubuntu
 dependencies:
   - role: homebrew
-    when: ansible_system == "Darwin"
+    when: ansible_facts['system'] == "Darwin"

@@ -5,7 +5,7 @@
 git_default_branch: "master"
 
 # Platform-native credential helper: macOS keychain, libsecret on Linux.
-git_credential_helper: "{{ 'osxkeychain' if ansible_system == 'Darwin' else 'libsecret' }}"
+git_credential_helper: "{{ 'osxkeychain' if ansible_facts['system'] == 'Darwin' else 'libsecret' }}"
 
 # Diff tool: Neovim diff mode (nvim -d). `nvimdiff` is a git built-in tool name.
 git_diff_tool: "nvimdiff"

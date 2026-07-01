@@ -2,7 +2,7 @@
 # Default variables for the neovim role (override in group_vars/host_vars).
 
 # Where the Neovim config is deployed.
-neovim_config_dir: "{{ xdg_config_home | default(ansible_env.HOME ~ '/.config') }}/nvim"
+neovim_config_dir: "{{ xdg_config_home | default(ansible_facts['env'].HOME ~ '/.config') }}/nvim"
 
 # --- Linux: build from source -------------------------------------------------
 # Git tag to build (https://github.com/neovim/neovim/releases).

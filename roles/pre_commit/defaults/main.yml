@@ -2,7 +2,7 @@
 # Default variables for the pre_commit role.
 
 # Path to the pre-commit binary (macOS: Homebrew; Linux: pipx ~/.local/bin).
-pre_commit_bin: "{{ (homebrew_prefix ~ '/bin/pre-commit') if ansible_system == 'Darwin' else (ansible_env.HOME ~ '/.local/bin/pre-commit') }}"
+pre_commit_bin: "{{ (homebrew_prefix ~ '/bin/pre-commit') if ansible_facts['system'] == 'Darwin' else (ansible_facts['env'].HOME ~ '/.local/bin/pre-commit') }}"
 
 # Git template directory. Setting init.templateDir to this makes `git clone`
 # and `git init` auto-install pre-commit hooks for repos that have a

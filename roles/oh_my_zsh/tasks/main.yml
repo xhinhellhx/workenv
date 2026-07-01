@@ -12,7 +12,7 @@
     update_cache: true
     cache_valid_time: 3600
   become: true
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Install prerequisites (RHEL family)
   ansible.builtin.dnf:
@@ -21,7 +21,7 @@
       - curl
     state: present
   become: true
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Check whether Oh My Zsh is installed
   ansible.builtin.stat:
@@ -30,7 +30,7 @@
 
 - name: Ensure cache directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.cache"
+    path: "{{ ansible_facts['env'].HOME }}/.cache"
     state: directory
     mode: "0755"
   when: not oh_my_zsh_existing.stat.exists
@@ -38,14 +38,14 @@
 - name: Download Oh My Zsh install script
   ansible.builtin.get_url:
     url: "{{ oh_my_zsh_install_url }}"
-    dest: "{{ ansible_env.HOME }}/.cache/ohmyzsh-install.sh"
+    dest: "{{ ansible_facts['env'].HOME }}/.cache/ohmyzsh-install.sh"
     mode: "0755"
     force: true
   when: not oh_my_zsh_existing.stat.exists
 
 - name: Run Oh My Zsh install script (unattended)
   ansible.builtin.command:
-    cmd: "{{ ansible_env.HOME }}/.cache/ohmyzsh-install.sh --unattended"
+    cmd: "{{ ansible_facts['env'].HOME }}/.cache/ohmyzsh-install.sh --unattended"
   environment:
     KEEP_ZSHRC: "{{ 'yes' if oh_my_zsh_keep_zshrc else 'no' }}"
   when: not oh_my_zsh_existing.stat.exists
@@ -53,5 +53,5 @@
 
 - name: Remove Oh My Zsh install script
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.cache/ohmyzsh-install.sh"
+    path: "{{ ansible_facts['env'].HOME }}/.cache/ohmyzsh-install.sh"
     state: absent

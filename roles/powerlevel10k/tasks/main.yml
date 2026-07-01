@@ -14,35 +14,35 @@
 - name: Generate ~/.p10k.zsh from the wizard template {{ p10k_style }}
   ansible.builtin.copy:
     src: "{{ p10k_dir }}/config/p10k-{{ p10k_style }}.zsh"
-    dest: "{{ ansible_env.HOME }}/.p10k.zsh"
+    dest: "{{ ansible_facts['env'].HOME }}/.p10k.zsh"
     remote_src: true
     force: false
     mode: "0644"
 
 - name: Use a single-line prompt
   ansible.builtin.replace:
-    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    path: "{{ ansible_facts['env'].HOME }}/.p10k.zsh"
     regexp: '^[ \t]*newline\b.*\n'
     replace: ''
   when: p10k_one_line
 
 - name: Use a compact prompt (no blank line between commands)
   ansible.builtin.replace:
-    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    path: "{{ ansible_facts['env'].HOME }}/.p10k.zsh"
     regexp: 'POWERLEVEL9K_PROMPT_ADD_NEWLINE=true'
     replace: 'POWERLEVEL9K_PROMPT_ADD_NEWLINE=false'
   when: p10k_compact
 
 - name: Remove the clock from the prompt
   ansible.builtin.replace:
-    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    path: "{{ ansible_facts['env'].HOME }}/.p10k.zsh"
     regexp: '^[ \t]*time\b.*\n'
     replace: ''
   when: not p10k_show_time
 
 - name: Extend icon padding (fix glyph overlap, e.g. SauceCodePro)
   ansible.builtin.replace:
-    path: "{{ ansible_env.HOME }}/.p10k.zsh"
+    path: "{{ ansible_facts['env'].HOME }}/.p10k.zsh"
     regexp: 'POWERLEVEL9K_ICON_PADDING=none'
     replace: 'POWERLEVEL9K_ICON_PADDING={{ p10k_icon_padding }}'
   when: p10k_icon_padding != "none"

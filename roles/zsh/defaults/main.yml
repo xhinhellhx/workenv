@@ -2,4 +2,4 @@
 # Default variables for the zsh role.
 
 # User whose default shell is switched to zsh (the connecting user by default).
-zsh_user: "{{ ansible_user_id }}"
+zsh_user: "{{ ansible_facts['user_id'] }}"

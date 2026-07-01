@@ -1,7 +1,7 @@
 ---
 # Default variables for the nvm role.
 
-nvm_dir: "{{ ansible_env.HOME }}/.nvm"
+nvm_dir: "{{ ansible_facts['env'].HOME }}/.nvm"
 nvm_repo: "https://github.com/nvm-sh/nvm.git"
 # Git ref to install. Empty = check out the latest release tag.
 nvm_version: ""

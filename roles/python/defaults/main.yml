@@ -10,4 +10,4 @@ python_set_global: true
 
 # Path to the pyenv binary (Linux: ~/.pyenv/bin; macOS: Homebrew).
 # pyenv_root and homebrew_prefix come from the pyenv/homebrew role defaults.
-pyenv_bin: "{{ (pyenv_root ~ '/bin/pyenv') if ansible_system == 'Linux' else (homebrew_prefix ~ '/bin/pyenv') }}"
+pyenv_bin: "{{ (pyenv_root ~ '/bin/pyenv') if ansible_facts['system'] == 'Linux' else (homebrew_prefix ~ '/bin/pyenv') }}"

@@ -2,7 +2,7 @@
 # Default variables for the pyenv role.
 
 # Where pyenv lives (used by the Linux git clone and the shell init).
-pyenv_root: "{{ ansible_env.HOME }}/.pyenv"
+pyenv_root: "{{ ansible_facts['env'].HOME }}/.pyenv"
 
 # --- Linux (git clone) --------------------------------------------------------
 pyenv_repo: "https://github.com/pyenv/pyenv.git"

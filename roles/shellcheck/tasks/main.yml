@@ -9,7 +9,7 @@
     name: shellcheck
     state: present
     path: "{{ homebrew_prefix }}/bin"
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install shellcheck (Debian/Ubuntu)
   ansible.builtin.apt:
@@ -18,21 +18,21 @@
     update_cache: true
     cache_valid_time: 3600
   become: true
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Enable EPEL repository (RHEL family, excluding Fedora)
   ansible.builtin.dnf:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
     state: present
     disable_gpg_check: true
   become: true
   when:
-    - ansible_os_family == "RedHat"
-    - ansible_distribution != "Fedora"
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['distribution'] != "Fedora"
 
 - name: Install ShellCheck (RHEL family)
   ansible.builtin.dnf:
     name: ShellCheck
     state: present
   become: true
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"

@@ -5,11 +5,11 @@
 
 - name: Install pyenv on macOS (Homebrew)
   ansible.builtin.import_tasks: install-macos.yml
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install pyenv on Linux (git clone)
   ansible.builtin.import_tasks: install-linux.yml
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
 
 - name: Configure pyenv shell integration
   ansible.builtin.import_tasks: shellrc.yml

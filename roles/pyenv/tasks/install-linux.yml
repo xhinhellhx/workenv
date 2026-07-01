@@ -9,21 +9,21 @@
     update_cache: true
     cache_valid_time: 3600
   become: true
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Install Python build dependencies (RHEL family)
   ansible.builtin.dnf:
     name: "{{ pyenv_build_deps_redhat }}"
     state: present
   become: true
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Fail on unsupported Linux distribution
   ansible.builtin.fail:
     msg: >-
-      Unsupported OS family '{{ ansible_os_family }}'. The pyenv role installs
+      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The pyenv role installs
       build dependencies only on Debian/Ubuntu and RHEL-family systems.
-  when: ansible_os_family not in ["Debian", "RedHat"]
+  when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
 
 - name: Clone pyenv
   ansible.builtin.git:

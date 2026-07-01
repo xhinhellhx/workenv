@@ -10,14 +10,14 @@
     update_cache: true
     cache_valid_time: 3600
   become: true
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Install prerequisites (RHEL family)
   ansible.builtin.dnf:
     name: "{{ nerd_fonts_prereqs_redhat }}"
     state: present
   become: true
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Check whether the installed Nerd Fonts match {{ nerd_fonts_version }}
   ansible.builtin.stat:
@@ -44,7 +44,7 @@
 - name: Refresh font cache (Linux)
   ansible.builtin.command: fc-cache -f
   when:
-    - ansible_system == "Linux"
+    - ansible_facts['system'] == "Linux"
     - nerd_fonts_force or not nerd_fonts_marker.stat.exists
   changed_when: true
 

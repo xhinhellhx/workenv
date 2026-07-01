@@ -1,6 +1,6 @@
 ---
 # Default variables for the zsh_config role.
-zsh_shellrc: "{{ ansible_env.HOME }}/.zshrc"
+zsh_shellrc: "{{ ansible_facts['env'].HOME }}/.zshrc"
 # Subdirectories under zsh_fragment_dir that the skeleton sources, in order.
 zsh_fragment_subdirs:
   - early.d

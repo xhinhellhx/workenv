@@ -8,10 +8,10 @@
     name: glab
     state: present
     path: "{{ homebrew_prefix }}/bin"
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install glab (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
   block:
     - name: Check installed glab version
       ansible.builtin.command: "{{ glab_install_dir }}/glab --version"

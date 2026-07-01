@@ -17,6 +17,6 @@ Requires `become` (root) to install packages and change the login shell.
 
 | Variable    | Default              | Description                                  |
 | ----------- | -------------------- | -------------------------------------------- |
-| `zsh_user`  | `{{ ansible_user_id }}` | User whose default shell is switched to zsh. |
+| `zsh_user`  | `{{ ansible_facts['user_id'] }}` | User whose default shell is switched to zsh. |
 
 > Log out and back in for the new default shell to take effect.

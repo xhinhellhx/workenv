@@ -8,10 +8,10 @@
     name: shfmt
     state: present
     path: "{{ homebrew_prefix }}/bin"
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install shfmt (Linux)
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
   block:
     - name: Check installed shfmt version
       ansible.builtin.command: "{{ shfmt_install_dir }}/shfmt --version"

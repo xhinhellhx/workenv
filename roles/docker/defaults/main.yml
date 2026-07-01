@@ -6,7 +6,7 @@ docker_brew_cask: "docker"
 
 # Linux: users added to the `docker` group (to run docker without sudo).
 docker_users:
-  - "{{ ansible_user_id }}"
+  - "{{ ansible_facts['user_id'] }}"
 
 # Linux installer (official convenience script; detects the distro).
 docker_install_url: "https://get.docker.com"

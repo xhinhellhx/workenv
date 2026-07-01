@@ -14,6 +14,6 @@
   environment:
     NONINTERACTIVE: "1"
   when:
-    - ansible_system == "Darwin"
+    - ansible_facts['system'] == "Darwin"
     - not homebrew_binary.stat.exists
   changed_when: true

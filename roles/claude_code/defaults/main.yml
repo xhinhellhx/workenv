@@ -14,7 +14,7 @@ claude_code_install_url: "https://claude.ai/install.sh"
 claude_code_version: "stable"
 
 # Installer drops the binary here (per-user install, no root required).
-claude_code_bin: "{{ ansible_env.HOME }}/.local/bin/claude"
+claude_code_bin: "{{ ansible_facts['env'].HOME }}/.local/bin/claude"
 
 # Set to true to re-run the installer even when Claude Code is already present
 # (e.g. to upgrade to a newer version).

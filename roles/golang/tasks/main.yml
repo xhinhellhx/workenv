@@ -35,7 +35,7 @@
       export PATH="$PATH:{{ golang_install_dir }}/bin:$HOME/go/bin"
     mode: "0644"
   become: true
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
 
 - name: Add Go to PATH (macOS, system-wide)
   ansible.builtin.copy:
@@ -43,4 +43,4 @@
     content: "{{ golang_install_dir }}/bin\n"
     mode: "0644"
   become: true
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"

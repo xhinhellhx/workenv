@@ -9,6 +9,6 @@ golang_version: "1.26.4"
 golang_install_dir: "/usr/local/go"
 
 # Download details (official go.dev binary distribution).
-golang_os: "{{ 'darwin' if ansible_system == 'Darwin' else 'linux' }}"
-golang_arch: "{{ 'arm64' if ansible_architecture in ['aarch64', 'arm64'] else 'amd64' }}"
+golang_os: "{{ 'darwin' if ansible_facts['system'] == 'Darwin' else 'linux' }}"
+golang_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
 golang_download_url: "https://go.dev/dl/go{{ golang_version }}.{{ golang_os }}-{{ golang_arch }}.tar.gz"

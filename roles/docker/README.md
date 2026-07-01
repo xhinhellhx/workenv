@@ -25,7 +25,7 @@ ensured by the `homebrew` role dependency.
 | Variable            | Default                   | Description                                 |
 | ------------------- | ------------------------- | ------------------------------------------- |
 | `docker_brew_cask`  | `docker`                  | Homebrew cask (macOS).                       |
-| `docker_users`      | `[ {{ ansible_user_id }} ]` | Users added to the `docker` group (Linux). |
+| `docker_users`      | `[ {{ ansible_facts['user_id'] }} ]` | Users added to the `docker` group (Linux). |
 | `docker_install_url`| `https://get.docker.com`  | Linux convenience-script URL.               |
 
 > Log out/in (or `newgrp docker`) after the first run for group membership to

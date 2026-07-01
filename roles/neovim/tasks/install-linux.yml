@@ -9,31 +9,31 @@
     update_cache: true
     cache_valid_time: 3600
   become: true
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == "Debian"
 
 - name: Enable EPEL repository (RHEL family, excluding Fedora)
   ansible.builtin.dnf:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
     state: present
     disable_gpg_check: true
   become: true
   when:
-    - ansible_os_family == "RedHat"
-    - ansible_distribution != "Fedora"
+    - ansible_facts['os_family'] == "RedHat"
+    - ansible_facts['distribution'] != "Fedora"
 
 - name: Install build dependencies (RHEL family)
   ansible.builtin.dnf:
     name: "{{ neovim_build_deps_redhat }}"
     state: present
   become: true
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 - name: Fail on unsupported Linux distribution
   ansible.builtin.fail:
     msg: >-
-      Unsupported OS family '{{ ansible_os_family }}'. The neovim role builds
+      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The neovim role builds
       from source only on Debian/Ubuntu and RHEL-family systems.
-  when: ansible_os_family not in ["Debian", "RedHat"]
+  when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
 
 - name: Check currently installed Neovim version
   ansible.builtin.command: "{{ neovim_install_prefix }}/bin/nvim --version"

@@ -6,6 +6,6 @@
 terraform_version: "v1.15.6"
 terraform_module: "github.com/hashicorp/terraform"
 # Directory the compiled terraform binary is placed in.
-terraform_gobin: "{{ ansible_env.HOME }}/go/bin"
+terraform_gobin: "{{ ansible_facts['env'].HOME }}/go/bin"
 # Re-run `go install` even if the binary is already present.
 terraform_force: false

@@ -1,6 +1,6 @@
 ---
 # Variables applied to every host in the inventory.
-xdg_config_home: "{{ ansible_env.HOME }}/.config"
+xdg_config_home: "{{ ansible_facts['env'].HOME }}/.config"
 
 # Base directory for the by-parts zsh configuration fragments.
 # Roles drop fragments into its subdirectories; the zsh_config role's

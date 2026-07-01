@@ -5,11 +5,11 @@
 
 - name: Install Ghostty on macOS (Homebrew)
   ansible.builtin.import_tasks: install-macos.yml
-  when: ansible_system == "Darwin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install Ghostty on Linux (build from source)
   ansible.builtin.import_tasks: install-linux.yml
-  when: ansible_system == "Linux"
+  when: ansible_facts['system'] == "Linux"
 
 - name: Deploy Ghostty configuration
   ansible.builtin.import_tasks: config.yml

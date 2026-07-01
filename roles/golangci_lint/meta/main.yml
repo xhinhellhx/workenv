@@ -12,4 +12,4 @@ galaxy_info:
     - name: EL
 dependencies:
   - role: homebrew
-    when: ansible_system == "Darwin"
+    when: ansible_facts['system'] == "Darwin"

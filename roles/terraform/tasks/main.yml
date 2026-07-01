@@ -32,8 +32,8 @@
         cmd: "{{ golang_install_dir }}/bin/go build -o {{ terraform_gobin }}/terraform ."
         chdir: "{{ terraform_build_dir.path }}"
       environment:
-        GOPATH: "{{ ansible_env.HOME }}/go"
-        PATH: "{{ golang_install_dir }}/bin:{{ ansible_env.PATH }}"
+        GOPATH: "{{ ansible_facts['env'].HOME }}/go"
+        PATH: "{{ golang_install_dir }}/bin:{{ ansible_facts['env'].PATH }}"
       changed_when: true
   always:
     - name: Remove temporary build directory
