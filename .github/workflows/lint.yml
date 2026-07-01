@@ -1,7 +1,8 @@
 name: lint
 
-# Runs the same checks as the local pre-commit hooks
-# (ansible-lint, shellcheck, shfmt) on every push and PR.
+# Runs the project linters/formatters explicitly (no pre-commit wrapper).
+# Each job mirrors a hook in .pre-commit-config.yaml; keep the pinned tool
+# versions below in sync with that file.
 on:
   push:
     branches: [master]
@@ -16,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit:
+  ansible-lint:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
@@ -25,22 +26,51 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          # The last version listed becomes the default `python` (used for the
-          # ansible-core install below). 3.14 is also installed because a
-          # pre-commit hook pins python3.14 for its own venv, so virtualenv
-          # needs that interpreter available on PATH.
-          python-version: |
-            3.14
-            3.12
+          python-version: "3.12"
 
-      - name: Install ansible-lint's Galaxy collection dependencies
-        # ansible-lint runs in its own pre-commit venv but resolves collections
-        # from the default user path (~/.ansible/collections), so install them
-        # here first. Mirrors `ansible-galaxy install -r requirements.yml`.
+      - name: Install ansible-lint and Galaxy collection dependencies
+        # ansible-lint resolves collections from the default user path
+        # (~/.ansible/collections), so install requirements.yml there first.
         run: |
           python -m pip install --upgrade pip
-          pip install ansible-core
+          pip install "ansible-lint==26.4.0"
           ansible-galaxy install -r requirements.yml
 
-      - name: Run pre-commit hooks
-        uses: pre-commit/action@v3.0.1
+      - name: Run ansible-lint
+        run: ansible-lint
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    env:
+      SHELLCHECK_VERSION: "0.11.0"
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck ${{ env.SHELLCHECK_VERSION }}
+        run: |
+          curl -fsSL "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" | tar -xJ
+          sudo install "shellcheck-v${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
+          shellcheck --version
+
+      - name: Lint provision.sh
+        run: shellcheck provision.sh
+
+  shfmt:
+    runs-on: ubuntu-latest
+    env:
+      SHFMT_VERSION: "3.13.1"
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install shfmt ${{ env.SHFMT_VERSION }}
+        run: |
+          curl -fsSL -o /tmp/shfmt "https://github.com/mvdan/sh/releases/download/v${SHFMT_VERSION}/shfmt_v${SHFMT_VERSION}_linux_amd64"
+          sudo install /tmp/shfmt /usr/local/bin/shfmt
+          shfmt --version
+
+      - name: Check provision.sh formatting (diff mode)
+        # Style (tabs + switch-case indent) is read from .editorconfig since no
+        # -i/-ci flags are passed; -d fails on any formatting diff.
+        run: shfmt -d provision.sh
