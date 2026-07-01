@@ -23,3 +23,13 @@ ghostty_snap_name: "ghostty"
 # this symlink guarantees `ghostty` resolves even when /snap/bin is missing from
 # the current session's PATH.
 ghostty_bin: "/usr/local/bin/ghostty"
+
+# Ghostty renders with OpenGL and refuses to start unless it can get an OpenGL
+# 4.3 context. Virtual GPUs (VirtualBox VMSVGA, VMware SVGA3D, QEMU/virgl,
+# Parallels, many cloud instances) cap the hardware GL path well below 4.3, so
+# Ghostty fails with "OpenGL version is too old". Mesa's llvmpipe software
+# rasterizer exposes OpenGL 4.5, satisfying the requirement, and is selected by
+# setting LIBGL_ALWAYS_SOFTWARE=1. We enable that automatically inside VM guests
+# (where there is no hardware acceleration to lose anyway) and leave bare-metal
+# hosts on their real GPU driver. Override to true/false to force the choice.
+ghostty_force_software_opengl: "{{ ansible_facts['virtualization_role'] | default('NA') == 'guest' }}"

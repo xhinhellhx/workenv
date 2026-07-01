@@ -8,9 +8,12 @@ ghostty_snapd_package: "snapd"
 # installed before snapd is available.
 ghostty_epel_package: "epel-release"
 
-# Ghostty renders with OpenGL and requires OpenGL 4.3, provided by the host's
-# Mesa drivers (the snap bundles GTK4/libadwaita but uses the host GL stack).
-# These packages pull in libGL and the Mesa DRI drivers that expose OpenGL 4.3.
+# Ghostty renders with OpenGL and needs an OpenGL 4.3 context (the snap bundles
+# GTK4/libadwaita but uses the host GL stack). These packages pull in libGL and
+# the Mesa DRI drivers. Crucially they also ship Mesa's llvmpipe software
+# rasterizer (swrast), which exposes OpenGL 4.5 and is what makes Ghostty work on
+# VMs whose virtual GPU caps the hardware GL path below 4.3 — see
+# ghostty_force_software_opengl, which selects llvmpipe via LIBGL_ALWAYS_SOFTWARE.
 ghostty_opengl_packages:
   Debian:
     - libgl1-mesa-dri
@@ -18,3 +21,8 @@ ghostty_opengl_packages:
   RedHat:
     - mesa-libGL
     - mesa-dri-drivers
+
+# Desktop entry snapd generates for the Ghostty snap. The app-grid icon launches
+# from here, so when software OpenGL is forced the role overrides this entry's
+# Exec to route through the ghostty_bin wrapper (see tasks/install-linux.yml).
+ghostty_snap_desktop_file: "/var/lib/snapd/desktop/applications/ghostty_ghostty.desktop"
