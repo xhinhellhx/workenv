@@ -1,0 +1,28 @@
+---
+# Install the hooks with:  pre-commit install
+# Run on everything with:  pre-commit run --all-files
+repos:
+  # Lint the Ansible roles and playbooks.
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.4.0
+    hooks:
+      - id: ansible-lint
+        name: Lint Ansible
+
+  # Lint provision.sh.
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        name: Lint provision.sh
+        files: ^provision\.sh$
+
+  # Check provision.sh formatting (diff mode). Style comes from .editorconfig
+  # (tabs + switch-case indent) — shfmt reads it when no -i/-ci flags are given.
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.1-1
+    hooks:
+      - id: shfmt
+        name: Check provision.sh formatting
+        files: ^provision\.sh$
+        args: [-d]
