@@ -25,7 +25,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          # The last version listed becomes the default `python` (used for the
+          # ansible-core install below). 3.14 is also installed because a
+          # pre-commit hook pins python3.14 for its own venv, so virtualenv
+          # needs that interpreter available on PATH.
+          python-version: |
+            3.14
+            3.12
 
       - name: Install ansible-lint's Galaxy collection dependencies
         # ansible-lint runs in its own pre-commit venv but resolves collections
