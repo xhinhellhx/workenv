@@ -40,12 +40,17 @@
         url: "{{ gcloud_apt_key_url }}"
         dest: /etc/apt/keyrings/cloud.google.asc
         mode: "0644"
+      register: gcloud_apt_key_download
 
     - name: Dearmor the Google Cloud apt signing key
+      # Always regenerate the binary keyring from the freshly downloaded armored
+      # key. A `creates:` guard here would skip forever once the file exists,
+      # so a keyring left corrupt by an earlier run would never be repaired
+      # ("gpg: packet(6) with unknown version 6" on apt update). --yes forces
+      # the overwrite.
       ansible.builtin.command:
         cmd: "gpg --batch --yes --dearmor -o {{ gcloud_apt_keyring_path }} /etc/apt/keyrings/cloud.google.asc"
-      args:
-        creates: "{{ gcloud_apt_keyring_path }}"
+      changed_when: gcloud_apt_key_download is changed
 
     - name: Add the Google Cloud apt repository (deb822)
       ansible.builtin.deb822_repository:
