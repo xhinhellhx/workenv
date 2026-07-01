@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  role_name: git_config
+  author: xhinhellhx
+  description: Applies global git configuration
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies: []

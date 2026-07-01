@@ -1,0 +1,30 @@
+---
+# Default variables for the git_config role.
+
+# Default branch name for `git init`.
+git_default_branch: "master"
+
+# Platform-native credential helper: macOS keychain, libsecret on Linux.
+git_credential_helper: "{{ 'osxkeychain' if ansible_system == 'Darwin' else 'libsecret' }}"
+
+# Diff tool: Neovim diff mode (nvim -d). `nvimdiff` is a git built-in tool name.
+git_diff_tool: "nvimdiff"
+
+# Debian/Ubuntu: location of git's libsecret credential-helper source (built
+# on demand because the package ships it as source, not a binary).
+git_libsecret_contrib_dir: "/usr/share/doc/git/contrib/credential/libsecret"
+
+# Global git settings applied by the role (scope: global -> ~/.gitconfig).
+git_settings:
+  - name: "init.defaultBranch"
+    value: "{{ git_default_branch }}"
+  - name: "push.autoSetupRemote"
+    value: "true"
+  - name: "pull.rebase"
+    value: "true"
+  - name: "credential.helper"
+    value: "{{ git_credential_helper }}"
+  - name: "diff.tool"
+    value: "{{ git_diff_tool }}"
+  - name: "difftool.prompt"
+    value: "false"

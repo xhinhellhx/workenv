@@ -1,0 +1,33 @@
+---
+# Apply global git configuration.
+
+- name: Install git (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: git
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Install git (RHEL family)
+  ansible.builtin.dnf:
+    name: git
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure the libsecret credential helper is available (Linux)
+  ansible.builtin.import_tasks: libsecret.yml
+  when:
+    - ansible_system == "Linux"
+    - git_credential_helper == "libsecret"
+
+- name: Apply global git settings
+  community.general.git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop: "{{ git_settings }}"
+  loop_control:
+    label: "{{ item.name }}"
