@@ -7,6 +7,7 @@ gcloud_brew_cask: "google-cloud-sdk"
 # Linux: package + repo details (Google Cloud CLI apt/yum repositories).
 gcloud_package: "google-cloud-cli"
 gcloud_apt_key_url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+gcloud_apt_keyring_path: "/etc/apt/keyrings/cloud.google.gpg"
 gcloud_apt_repo: "https://packages.cloud.google.com/apt"
 gcloud_yum_baseurl: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el{{ ansible_facts['distribution_major_version'] }}-x86_64"
 gcloud_yum_gpgkey: "https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"

@@ -27,6 +27,26 @@
         update_cache: true
         cache_valid_time: 3600
 
+    - name: Ensure the apt keyrings directory exists
+      ansible.builtin.file:
+        path: "{{ gcloud_apt_keyring_path | dirname }}"
+        state: directory
+        mode: "0755"
+
+    - name: Add the Google Cloud apt signing key (dearmored)
+      # The upstream key is ASCII-armored; deb822 Signed-By needs a binary
+      # keyring, so dearmor it locally instead of pointing signed_by at the URL.
+      ansible.builtin.get_url:
+        url: "{{ gcloud_apt_key_url }}"
+        dest: /etc/apt/keyrings/cloud.google.asc
+        mode: "0644"
+
+    - name: Dearmor the Google Cloud apt signing key
+      ansible.builtin.command:
+        cmd: "gpg --batch --yes --dearmor -o {{ gcloud_apt_keyring_path }} /etc/apt/keyrings/cloud.google.asc"
+      args:
+        creates: "{{ gcloud_apt_keyring_path }}"
+
     - name: Add the Google Cloud apt repository (deb822)
       ansible.builtin.deb822_repository:
         name: google-cloud-sdk
@@ -34,7 +54,7 @@
         uris: "{{ gcloud_apt_repo }}"
         suites: [cloud-sdk]
         components: [main]
-        signed_by: "{{ gcloud_apt_key_url }}"
+        signed_by: "{{ gcloud_apt_keyring_path }}"
         state: present
 
     - name: Install the google-cloud-cli package
