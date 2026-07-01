@@ -1,0 +1,9 @@
+---
+# Default variables for the plantuml role.
+
+# PlantUML release (https://github.com/plantuml/plantuml/releases).
+plantuml_version: "1.2026.6"
+# Linux: where the JAR lives and the wrapper that runs it.
+plantuml_install_dir: "/opt/plantuml"
+plantuml_bin: "/usr/local/bin/plantuml"
+plantuml_jar_url: "https://github.com/plantuml/plantuml/releases/download/v{{ plantuml_version }}/plantuml-{{ plantuml_version }}.jar"

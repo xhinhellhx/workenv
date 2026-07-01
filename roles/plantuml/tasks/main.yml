@@ -1,0 +1,53 @@
+---
+# Install PlantUML.
+#   - macOS: Homebrew (pulls in OpenJDK + Graphviz)
+#   - Linux: install Java + Graphviz, fetch the JAR, install a wrapper script
+
+- name: Install PlantUML (macOS, Homebrew)
+  community.general.homebrew:
+    name: plantuml
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install PlantUML (Linux)
+  when: ansible_system == "Linux"
+  block:
+    - name: Install PlantUML dependencies (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: "{{ plantuml_deps_debian }}"
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      become: true
+      when: ansible_os_family == "Debian"
+
+    - name: Install PlantUML dependencies (RHEL family)
+      ansible.builtin.dnf:
+        name: "{{ plantuml_deps_redhat }}"
+        state: present
+      become: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure the PlantUML install directory exists
+      ansible.builtin.file:
+        path: "{{ plantuml_install_dir }}"
+        state: directory
+        mode: "0755"
+      become: true
+
+    - name: Download the PlantUML {{ plantuml_version }} jar
+      ansible.builtin.get_url:
+        url: "{{ plantuml_jar_url }}"
+        dest: "{{ plantuml_install_dir }}/plantuml.jar"
+        mode: "0644"
+      become: true
+
+    - name: Install the plantuml wrapper script
+      ansible.builtin.copy:
+        dest: "{{ plantuml_bin }}"
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          exec java -jar "{{ plantuml_install_dir }}/plantuml.jar" "$@"
+      become: true

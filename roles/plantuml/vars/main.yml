@@ -1,0 +1,11 @@
+---
+# Internal role variables (not intended to be overridden).
+# PlantUML runs on the JVM and shells out to Graphviz (dot).
+
+plantuml_deps_debian:
+  - default-jre-headless
+  - graphviz
+
+plantuml_deps_redhat:
+  - java-17-openjdk-headless
+  - graphviz
