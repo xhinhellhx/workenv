@@ -43,13 +43,17 @@
       changed_when: true
       when: nvm_version | length == 0
 
-- name: Configure nvm in {{ nvm_shellrc | basename }}
-  ansible.builtin.blockinfile:
-    path: "{{ nvm_shellrc }}"
-    create: true
+- name: Ensure the zsh rc.d directory exists
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/rc.d"
+    state: directory
+    mode: "0755"
+
+- name: Configure nvm in the shell (rc.d fragment)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/rc.d/30-nvm.zsh"
     mode: "0644"
-    marker: "# {mark} ANSIBLE MANAGED: nvm"
-    block: |
+    content: |
       export NVM_DIR="{{ nvm_dir }}"
       [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
       [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"

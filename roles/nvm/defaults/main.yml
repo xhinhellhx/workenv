@@ -5,5 +5,5 @@ nvm_dir: "{{ ansible_env.HOME }}/.nvm"
 nvm_repo: "https://github.com/nvm-sh/nvm.git"
 # Git ref to install. Empty = check out the latest release tag.
 nvm_version: ""
-# Shell rc file to add the nvm init block to.
-nvm_shellrc: "{{ ansible_env.HOME }}/.zshrc"
+# nvm init is delivered as a zsh fragment at
+# {{ zsh_fragment_dir }}/rc.d/30-nvm.zsh (see the zsh_config role).

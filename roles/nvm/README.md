@@ -8,13 +8,16 @@ already exists.
 
 ## Shell integration
 
-A managed block is added to `nvm_shellrc` (default `~/.zshrc`):
+Delivered as a zsh fragment at `~/.config/zsh/rc.d/30-nvm.zsh` (sourced by the
+`zsh_config` skeleton after oh-my-zsh):
 
 ```sh
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 ```
+
+> Requires the `zsh_config` role to source the fragment.
 
 ## Variables
 
@@ -23,4 +26,3 @@ export NVM_DIR="$HOME/.nvm"
 | `nvm_dir`     | `~/.nvm`     | Install location (`NVM_DIR`).                     |
 | `nvm_repo`    | nvm repo URL | Source repository.                                |
 | `nvm_version` | `""`         | Git ref to install (empty = latest release tag).  |
-| `nvm_shellrc` | `~/.zshrc`   | Shell rc file to add the init block to.           |
