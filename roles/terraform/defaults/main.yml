@@ -1,0 +1,11 @@
+---
+# Default variables for the terraform role.
+
+# Built from source with `go install`. Version is a module query:
+# "latest" or a tag like "v1.9.8".
+terraform_version: "latest"
+terraform_module: "github.com/hashicorp/terraform"
+# Where `go install` places the binary (GOBIN).
+terraform_gobin: "{{ ansible_env.HOME }}/go/bin"
+# Re-run `go install` even if the binary is already present.
+terraform_force: false

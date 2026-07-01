@@ -1,0 +1,18 @@
+---
+# Install Terraform from source with `go install`.
+# Cross-platform; the Go toolchain is provided by the `golang` role dependency.
+
+- name: Check whether terraform is installed
+  ansible.builtin.command: "{{ terraform_gobin }}/terraform version"
+  register: terraform_installed
+  changed_when: false
+  failed_when: false
+
+- name: Install Terraform from source (go install)
+  ansible.builtin.command: "{{ golang_install_dir }}/bin/go install {{ terraform_module }}@{{ terraform_version }}"
+  environment:
+    GOPATH: "{{ ansible_env.HOME }}/go"
+    GOBIN: "{{ terraform_gobin }}"
+    PATH: "{{ golang_install_dir }}/bin:{{ ansible_env.PATH }}"
+  when: terraform_force or terraform_installed.rc != 0
+  changed_when: true

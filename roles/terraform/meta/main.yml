@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: terraform
+  author: xhinhellhx
+  description: Installs Terraform from source via go install
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: golang
