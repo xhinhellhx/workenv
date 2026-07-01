@@ -7,7 +7,7 @@ claude_code_brew_package: "claude-code"
 
 # --- Linux (install script) ---------------------------------------------------
 # Official installer used on Linux.
-claude_code_install_url: "https://claude.ai/install.sh"
+claude_code_install_url: "https://downloads.claude.ai/claude-code-releases/bootstrap.sh"
 
 # Version argument passed to the installer: "stable", "latest", or a
 # specific version such as "1.2.3".
