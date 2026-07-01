@@ -85,11 +85,11 @@ require('lazy').setup({
     build  = ':TSUpdate',
     lazy   = false,
     config = function()
-        require('nvim-treesitter').setup()
-
-        require('nvim-treesitter').install({
-          'c', 'cpp', 'go', 'python', 'lua',
-          'json', 'yaml', 'toml', 'bash', 'markdown', 'vim',
+        require('nvim-treesitter').setup({
+          ensure_installed = {
+            'c', 'cpp', 'go', 'python', 'lua',
+            'json', 'yaml', 'toml', 'bash', 'markdown', 'vim',
+          },
         })
 
         vim.api.nvim_create_autocmd('FileType', {
