@@ -1,0 +1,39 @@
+---
+# Ensure zsh is installed and make it the default shell.
+# macOS ships zsh by default; Linux installs it via the package manager.
+
+- name: Install zsh (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: zsh
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Install zsh (RHEL family)
+  ansible.builtin.dnf:
+    name: zsh
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+
+- name: Locate the zsh binary
+  ansible.builtin.shell: command -v zsh
+  register: zsh_binary
+  changed_when: false
+
+- name: Ensure zsh is listed in /etc/shells
+  ansible.builtin.lineinfile:
+    path: /etc/shells
+    line: "{{ zsh_binary.stdout }}"
+    state: present
+    create: true
+    mode: "0644"
+  become: true
+
+- name: Set zsh as the default shell for {{ zsh_user }}
+  ansible.builtin.user:
+    name: "{{ zsh_user }}"
+    shell: "{{ zsh_binary.stdout }}"
+  become: true
