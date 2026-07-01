@@ -19,10 +19,11 @@ scripts, managed as Ansible playbooks.
 ```
 
 There is no committed `site.yml`: `provision.sh` is the source of truth for the
-top-level playbook. It lets you pick a container engine (Docker or Podman),
-writes a temporary playbook listing every role plus that engine, and applies it.
-`group_vars`/`host_vars` live next to the inventory so they load regardless of
-where that generated playbook sits.
+top-level playbook. It lets you pick a container engine (Docker or Podman) and
+whether to install GUI applications (the Ghostty terminal — handy to skip on a
+headless or remote box), writes a temporary playbook listing every selected
+role plus that engine, and applies it. `group_vars`/`host_vars` live next to the
+inventory so they load regardless of where that generated playbook sits.
 
 ## Usage
 
@@ -36,8 +37,11 @@ itself, so there's no separate setup step.
 # Apply
 ./provision.sh
 
-# Skip the prompt by pinning the engine
-CONTAINER_ENGINE=podman ./provision.sh
+# Skip the prompts by pinning the engine and GUI choice
+CONTAINER_ENGINE=podman INSTALL_GUI=no ./provision.sh
+
+# Skip installing GUI applications (e.g. on a headless / remote box)
+./provision.sh --skip-gui
 
 # Change a remembered pick
 ./provision.sh --reconfigure
@@ -47,5 +51,6 @@ CONTAINER_ENGINE=podman ./provision.sh
 ```
 
 Your picks are remembered in `.provision.env` (git-ignored), so later runs skip
-the prompt. Precedence is `CONTAINER_ENGINE` env var > saved state > prompt.
-Any other arguments are forwarded to `ansible-playbook`.
+the prompts. Precedence for the engine is `CONTAINER_ENGINE` env var > saved
+state > prompt; for GUI apps it is `--skip-gui` > `INSTALL_GUI` env var > saved
+state > prompt. Any other arguments are forwarded to `ansible-playbook`.
