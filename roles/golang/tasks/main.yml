@@ -1,0 +1,46 @@
+---
+# Install a pinned Go version from the official binary distribution.
+# Cross-platform: macOS, Debian/Ubuntu and RHEL family.
+
+- name: Check installed Go version
+  ansible.builtin.command: "{{ golang_install_dir }}/bin/go version"
+  register: golang_installed
+  changed_when: false
+  failed_when: false
+
+- name: Determine whether a Go (re)install is required
+  ansible.builtin.set_fact:
+    golang_install_required: "{{ ('go' ~ golang_version) not in golang_installed.stdout }}"
+
+- name: Remove existing Go installation
+  ansible.builtin.file:
+    path: "{{ golang_install_dir }}"
+    state: absent
+  become: true
+  when: golang_install_required
+
+- name: Download and extract Go {{ golang_version }}
+  ansible.builtin.unarchive:
+    src: "{{ golang_download_url }}"
+    dest: "{{ golang_install_dir | dirname }}"
+    remote_src: true
+    creates: "{{ golang_install_dir }}/bin/go"
+  become: true
+  when: golang_install_required
+
+- name: Add Go to PATH (Linux, system-wide)
+  ansible.builtin.copy:
+    dest: /etc/profile.d/go.sh
+    content: |
+      export PATH="$PATH:{{ golang_install_dir }}/bin:$HOME/go/bin"
+    mode: "0644"
+  become: true
+  when: ansible_system == "Linux"
+
+- name: Add Go to PATH (macOS, system-wide)
+  ansible.builtin.copy:
+    dest: /etc/paths.d/go
+    content: "{{ golang_install_dir }}/bin\n"
+    mode: "0644"
+  become: true
+  when: ansible_system == "Darwin"
