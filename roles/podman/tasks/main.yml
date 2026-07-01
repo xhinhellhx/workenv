@@ -1,0 +1,27 @@
+---
+# Install Podman (daemonless container engine).
+#   - macOS: Homebrew formula (manage VMs with `podman machine`)
+#   - Linux: distro package (Debian/Ubuntu and RHEL family)
+
+- name: Install Podman (macOS, Homebrew)
+  community.general.homebrew:
+    name: podman
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install Podman (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: podman
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Install Podman (RHEL family)
+  ansible.builtin.dnf:
+    name: podman
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
