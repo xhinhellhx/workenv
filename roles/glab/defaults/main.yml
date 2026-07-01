@@ -1,0 +1,11 @@
+---
+# Default variables for the glab role.
+
+# glab release to install on Linux (https://gitlab.com/gitlab-org/cli/-/releases).
+glab_version: "1.103.0"
+# Directory the glab binary is installed into (Linux).
+glab_install_dir: "/usr/local/bin"
+
+# Download details (Linux release tarball).
+glab_arch: "{{ 'arm64' if ansible_architecture in ['aarch64', 'arm64'] else 'amd64' }}"
+glab_download_url: "https://gitlab.com/gitlab-org/cli/-/releases/v{{ glab_version }}/downloads/glab_{{ glab_version }}_linux_{{ glab_arch }}.tar.gz"
