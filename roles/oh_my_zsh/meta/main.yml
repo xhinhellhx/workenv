@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: oh_my_zsh
+  author: xhinhellhx
+  description: Installs Oh My Zsh via the official unattended installer
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: zsh
