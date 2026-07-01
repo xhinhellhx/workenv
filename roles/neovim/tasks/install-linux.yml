@@ -121,3 +121,24 @@
   become: true
   when: neovim_build_required
   changed_when: true
+
+# clangd (C/C++ LSP) is installed from the distro rather than Mason: the
+# clangd/clangd releases Mason pulls from have no Linux arm64 build, so Mason
+# aborts with "unsupported platform" on aarch64. The distro package exists for
+# every arch and the neovim config resolves `clangd` from PATH (see
+# neovim_clangd_package and the Mason ensure_installed list in init.lua).
+- name: Install clangd (C/C++ LSP) from the system package manager (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ neovim_clangd_package['Debian'] }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install clangd (C/C++ LSP) from the system package manager (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ neovim_clangd_package['RedHat'] }}"
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"

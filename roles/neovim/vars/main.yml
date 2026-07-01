@@ -18,6 +18,15 @@ neovim_build_deps_debian:
   - git
   - doxygen
 
+# clangd (C/C++ LSP). Mason has no prebuilt clangd for Linux arm64 (the
+# clangd/clangd releases ship only darwin/linux-x86_64/windows), so on Linux it
+# is installed from the distro and kept out of Mason's ensure_installed; the
+# neovim config resolves `clangd` from PATH. On Fedora/RHEL clangd ships in
+# clang-tools-extra; Debian/Ubuntu provide a `clangd` metapackage.
+neovim_clangd_package:
+  Debian: clangd
+  RedHat: clang-tools-extra
+
 neovim_build_deps_redhat:
   - gcc
   - gcc-c++

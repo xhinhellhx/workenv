@@ -50,13 +50,22 @@ require('lazy').setup({
     'mason-org/mason-lspconfig.nvim',
     dependencies = { 'mason-org/mason.nvim' },
     opts = {
-      ensure_installed = {
-        'clangd', 'gopls', 'pyright',
-        'jsonls', 'yamlls', 'taplo',
-        'golangci_lint_ls',  -- wraps the system golangci-lint as a diagnostics LSP
-        -- ruff is installed via standalone binary (PEP 668 blocks pip on this system):
-        --   curl -LsSf https://astral.sh/ruff/install.sh | sh
-      },
+      ensure_installed = vim.list_extend(
+        {
+          'gopls', 'pyright',
+          'jsonls', 'yamlls', 'taplo',
+          'golangci_lint_ls',  -- wraps the system golangci-lint as a diagnostics LSP
+          -- ruff is installed via standalone binary (PEP 668 blocks pip on this system):
+          --   curl -LsSf https://astral.sh/ruff/install.sh | sh
+        },
+        -- clangd: Mason fetches it from the clangd/clangd GitHub releases, which
+        -- ship only darwin / linux-x86_64 / windows builds — there is no Linux
+        -- arm64 binary, so on aarch64 Linux Mason aborts with "unsupported
+        -- platform". On Linux we therefore install clangd from the distro instead
+        -- (see the neovim role) and resolve it from PATH; let Mason manage it only
+        -- on macOS, where a prebuilt exists for every arch.
+        vim.uv.os_uname().sysname == 'Linux' and {} or { 'clangd' }
+      ),
     },
   },
 
