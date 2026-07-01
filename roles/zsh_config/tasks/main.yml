@@ -14,3 +14,10 @@
     src: zshrc.j2
     dest: "{{ zsh_shellrc }}"
     mode: "0644"
+
+- name: Add ~/.local/bin to PATH (early.d fragment)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/early.d/05-local-bin.zsh"
+    mode: "0644"
+    content: |
+      [[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
