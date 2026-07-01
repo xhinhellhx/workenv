@@ -2,18 +2,21 @@
 
 Installs [Helm](https://helm.sh), the Kubernetes package manager.
 
-| Platform        | Method                                          |
-| --------------- | ----------------------------------------------- |
-| macOS           | Homebrew (`helm`)                                |
-| Debian / Ubuntu | Official `get-helm-3` script → `/usr/local/bin`  |
-| RHEL family     | Official `get-helm-3` script → `/usr/local/bin`  |
+| Platform        | Method                                              |
+| --------------- | --------------------------------------------------- |
+| macOS           | Homebrew (`helm`)                                   |
+| Debian / Ubuntu | Official release tarball → `/usr/local/bin/helm`    |
+| RHEL family     | Official release tarball → `/usr/local/bin/helm`    |
 
-Idempotent on Linux: the script runs only when `helm` is missing (or
-`helm_force: true`). Homebrew is ensured by the `homebrew` role dependency.
+Homebrew is ensured by the `homebrew` role dependency. On Linux the role is
+idempotent: it only re-installs when `helm version --short` doesn't match
+`helm_version` (or `helm_force: true`).
 
 ## Variables
 
-| Variable                  | Default                       | Description                          |
-| ------------------------- | ----------------------------- | ------------------------------------ |
-| `helm_install_script_url` | official get-helm-3 URL       | Linux installer (installs latest).   |
-| `helm_force`              | `false`                       | Re-run the installer to upgrade.     |
+| Variable            | Default          | Description                               |
+| ------------------- | ---------------- | ----------------------------------------- |
+| `helm_version`      | `3.21.1`         | Helm release to install on Linux.         |
+| `helm_install_dir`  | `/usr/local/bin` | Where the binary is installed (Linux).    |
+| `helm_download_url` | get.helm.sh URL  | Derived tarball URL (arch auto-detected). |
+| `helm_force`        | `false`          | Re-install even if already present.       |
