@@ -75,6 +75,7 @@ COMMON_ROLES=(
 	trivy
 	gitleaks
 	editorconfig_checker
+	yamlfmt
 	nvm
 	node
 	pyenv

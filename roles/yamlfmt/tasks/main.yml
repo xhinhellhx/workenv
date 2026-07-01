@@ -1,0 +1,34 @@
+---
+# Install yamlfmt (an extensible YAML formatter).
+#   - macOS: Homebrew (yamlfmt is in homebrew-core; Homebrew ensured by the
+#     `homebrew` role dependency)
+#   - Linux: official release tarball -> /usr/local/bin
+
+- name: Install yamlfmt (macOS, Homebrew)
+  community.general.homebrew:
+    name: yamlfmt
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install yamlfmt (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed yamlfmt version
+      ansible.builtin.command: "{{ yamlfmt_install_dir }}/yamlfmt -version"
+      register: yamlfmt_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Download and extract the yamlfmt binary, version {{ yamlfmt_version }}
+      ansible.builtin.unarchive:
+        src: "{{ yamlfmt_download_url }}"
+        dest: "{{ yamlfmt_install_dir }}"
+        remote_src: true
+        include:
+          - yamlfmt
+        mode: "0755"
+        owner: root
+        group: root
+      become: true
+      when: yamlfmt_version not in yamlfmt_installed.stdout
