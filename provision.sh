@@ -73,6 +73,7 @@ COMMON_ROLES=(
 	hadolint
 	dockle
 	trivy
+	gitleaks
 	nvm
 	node
 	pyenv
