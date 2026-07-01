@@ -41,6 +41,18 @@
   changed_when: false
   failed_when: false
 
+# `nvim --version` does NOT load the runtime, so a binary whose bundled runtime
+# is missing/mismatched (e.g. a stale incremental build) still reports rc 0 and
+# the right version — yet fails at startup with "module 'vim.uri' not found".
+# `--clean` skips user config but still loads the core runtime, so this isolates
+# a broken install from plugin/config issues and lets us force a rebuild to heal.
+- name: Verify the installed Neovim can load its core runtime
+  ansible.builtin.command: "{{ neovim_install_prefix }}/bin/nvim --clean --headless +qa"
+  register: neovim_runtime_check
+  changed_when: false
+  failed_when: false
+  when: neovim_installed.rc == 0
+
 - name: Clone Neovim source at {{ neovim_version }}
   ansible.builtin.git:
     repo: https://github.com/neovim/neovim.git
@@ -56,7 +68,24 @@
     neovim_build_required: >-
       {{ neovim_source.changed
          or neovim_installed.rc != 0
+         or (neovim_runtime_check.rc | default(0)) != 0
          or (neovim_version | regex_replace('^v', '')) not in neovim_installed.stdout }}
+
+# build/ caches CMAKE_INSTALL_PREFIX and config in CMakeCache.txt; .deps holds
+# the bundled luajit/tree-sitter/etc. Both are git-ignored, so `git force: true`
+# updates the source on a version bump but leaves these stale — make then does a
+# partial rebuild and the binary/runtime drift apart (the "module 'vim.uri' not
+# found" failure). Neovim's BUILD.md calls for `make distclean` when rebuilding;
+# removing the dirs is equivalent and works even on a partial/corrupt tree.
+- name: Remove stale build artifacts before (re)building
+  ansible.builtin.file:
+    path: "{{ neovim_build_dir }}/{{ item }}"
+    state: absent
+  loop:
+    - build
+    - .deps
+  become: true
+  when: neovim_build_required
 
 - name: Build Neovim ({{ neovim_build_type }})
   ansible.builtin.command:
