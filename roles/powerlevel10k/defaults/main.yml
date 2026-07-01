@@ -14,3 +14,8 @@ p10k_show_time: false        # show the clock on the right
 # Spacing around icons (fixes glyph overlap with fonts like SauceCodePro):
 # none | moderate | extended.
 p10k_icon_padding: "moderate"
+
+# Layer a Solarized palette over the generated prompt: off | dark | light.
+# Matches the Solarized terminal themes (e.g. the ghostty role's
+# "Solarized Dark Patched").
+p10k_solarized: "dark"

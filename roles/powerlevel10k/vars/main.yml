@@ -1,0 +1,33 @@
+---
+# Internal role variables (not intended to be overridden).
+# Solarized palette mapped to the nearest xterm-256 colour indices.
+# https://ethanschoonover.com/solarized/
+#
+# Accent colours are identical between Dark and Light; only the monotone
+# base tones swap. Segment colours are assigned from these in the
+# 91-powerlevel10k-solarized.zsh fragment.
+
+# Base (monotone) tones — differ per background mode.
+p10k_solarized_palettes:
+  dark:
+    base_bg: 235      # base02  #073642  (segment background)
+    base_bg_alt: 240  # base01  #586e75  (muted/secondary background)
+    content: 244      # base0   #839496  (body text)
+    emphasized: 245   # base1   #93a1a1  (emphasized text)
+    bright: 230       # base3   #fdf6e3  (high-contrast text on accents)
+  light:
+    base_bg: 254      # base2   #eee8d5
+    base_bg_alt: 245  # base1   #93a1a1
+    content: 241      # base00  #657b83
+    emphasized: 240   # base01  #586e75
+    bright: 234       # base03  #002b36
+
+# Accent colours — shared across both modes.
+p10k_solarized_yellow: 136   # #b58900
+p10k_solarized_orange: 166   # #cb4b16
+p10k_solarized_red: 160      # #dc322f
+p10k_solarized_magenta: 125  # #d33682
+p10k_solarized_violet: 61    # #6c71c4
+p10k_solarized_blue: 33      # #268bd2
+p10k_solarized_cyan: 37      # #2aa198
+p10k_solarized_green: 64     # #859900

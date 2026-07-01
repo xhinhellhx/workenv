@@ -71,3 +71,65 @@
     mode: "0644"
     content: |
       [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+
+# --- Solarized palette --------------------------------------------------------
+# Layered over the generated ~/.p10k.zsh. Sourced at 91-… (after the 90-… that
+# sources ~/.p10k.zsh); p10k reads POWERLEVEL9K_* parameters lazily at prompt
+# build, so these re-assignments override the wizard template's colours.
+- name: "Apply the Solarized palette: (rc.d) {{ p10k_solarized }}"
+  vars:
+    p: "{{ p10k_solarized_palettes[p10k_solarized] }}"
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/rc.d/91-powerlevel10k-solarized.zsh"
+    mode: "0644"
+    content: |
+      # Solarized {{ p10k_solarized }} palette for Powerlevel10k (managed by Ansible).
+      # Overrides the per-segment colours in ~/.p10k.zsh; xterm-256 indices.
+
+      # Directory / OS icon.
+      typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND={{ p.bright }}
+      typeset -g POWERLEVEL9K_OS_ICON_BACKGROUND={{ p10k_solarized_blue }}
+      typeset -g POWERLEVEL9K_DIR_FOREGROUND={{ p.bright }}
+      typeset -g POWERLEVEL9K_DIR_BACKGROUND={{ p10k_solarized_blue }}
+      typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND={{ p.bright }}
+      typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND={{ p.emphasized }}
+
+      # Git / version control.
+      typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND={{ p10k_solarized_green }}
+      typeset -g POWERLEVEL9K_VCS_CLEAN_FOREGROUND={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND={{ p10k_solarized_yellow }}
+      typeset -g POWERLEVEL9K_VCS_MODIFIED_FOREGROUND={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND={{ p10k_solarized_green }}
+      typeset -g POWERLEVEL9K_VCS_UNTRACKED_FOREGROUND={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_VCS_CONFLICTED_BACKGROUND={{ p10k_solarized_red }}
+      typeset -g POWERLEVEL9K_VCS_CONFLICTED_FOREGROUND={{ p.bright }}
+      typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND={{ p.base_bg_alt }}
+      typeset -g POWERLEVEL9K_VCS_LOADING_FOREGROUND={{ p.emphasized }}
+
+      # Prompt symbol.
+      typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND={{ p10k_solarized_green }}
+      typeset -g POWERLEVEL9K_PROMPT_CHAR_ERROR_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND={{ p10k_solarized_red }}
+
+      # Exit status.
+      typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND={{ p10k_solarized_green }}
+      typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND={{ p10k_solarized_red }}
+      typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND={{ p.bright }}
+
+      # Command execution time.
+      typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_BACKGROUND={{ p.base_bg_alt }}
+      typeset -g POWERLEVEL9K_COMMAND_EXECUTION_TIME_FOREGROUND={{ p.bright }}
+
+      # Background jobs.
+      typeset -g POWERLEVEL9K_BACKGROUND_JOBS_BACKGROUND={{ p10k_solarized_cyan }}
+      typeset -g POWERLEVEL9K_BACKGROUND_JOBS_FOREGROUND={{ p.base_bg }}
+
+      # Clock.
+      typeset -g POWERLEVEL9K_TIME_BACKGROUND={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_TIME_FOREGROUND={{ p.emphasized }}
+  when: p10k_solarized in ['dark', 'light']
+
+- name: Remove the Solarized palette fragment when disabled
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/rc.d/91-powerlevel10k-solarized.zsh"
+    state: absent
+  when: p10k_solarized not in ['dark', 'light']
