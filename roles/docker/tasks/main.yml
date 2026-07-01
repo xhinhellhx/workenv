@@ -47,7 +47,7 @@
         content: >-
           {{ docker_config_current | combine({
                'cliPluginsExtraDirs':
-                 (docker_config_current.cliPluginsExtraDirs | default([]) + [docker_cli_plugins_dir]) | unique
+                 (docker_config_current.cliPluginsExtraDirs | default([]) + [docker_cli_plugins_dir | default('')]) | unique
              }) | to_nice_json }}
 
     - name: Ensure the user LaunchAgents directory exists
