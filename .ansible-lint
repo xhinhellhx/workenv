@@ -1,6 +1,11 @@
 ---
 # ansible-lint configuration.
 
+exclude_paths:
+  # CI workflow definitions are not Ansible content; keep ansible-lint's yaml
+  # rule (e.g. truthy on GitHub's `on:` key) off them.
+  - .github/
+
 skip_list:
   # Roles deliberately use shared cross-role variables (e.g. omz_custom,
   # zsh_fragment_subdirs), user-facing config variables (p10k_*, git_*,
