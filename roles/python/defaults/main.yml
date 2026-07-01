@@ -1,0 +1,13 @@
+---
+# Default variables for the python role.
+
+# Python version to install via pyenv. May be a prefix (e.g. "3.12", resolved
+# to the latest known patch) or an exact version (e.g. "3.12.8").
+python_version: "3.12"
+
+# Set the installed version as pyenv's global default.
+python_set_global: true
+
+# Path to the pyenv binary (Linux: ~/.pyenv/bin; macOS: Homebrew).
+# pyenv_root and homebrew_prefix come from the pyenv/homebrew role defaults.
+pyenv_bin: "{{ (pyenv_root ~ '/bin/pyenv') if ansible_system == 'Linux' else (homebrew_prefix ~ '/bin/pyenv') }}"
