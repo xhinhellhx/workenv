@@ -53,6 +53,7 @@ require('lazy').setup({
       ensure_installed = {
         'clangd', 'gopls', 'pyright',
         'jsonls', 'yamlls', 'taplo',
+        'golangci_lint_ls',  -- wraps the system golangci-lint as a diagnostics LSP
         -- ruff is installed via standalone binary (PEP 668 blocks pip on this system):
         --   curl -LsSf https://astral.sh/ruff/install.sh | sh
       },
@@ -455,6 +456,30 @@ vim.lsp.config('gopls', {
   },
 })
 
+-- golangci-lint as a diagnostics-only language server. It shells out to the
+-- system `golangci-lint` and serves the results as LSP diagnostics, so they
+-- show up as inline virtual text / signs and flow into Telescope (<Leader>fd),
+-- lualine, and the loclist (<Leader>cd) alongside gopls. Re-lints on save.
+--
+-- golangci-lint v2 (the version this repo installs) dropped `--out-format`;
+-- JSON must instead be written to stdout via `--output.json.path`.
+vim.lsp.config('golangci_lint_ls', {
+  cmd          = { 'golangci-lint-langserver' },
+  filetypes    = { 'go', 'gomod' },
+  init_options = {
+    command = {
+      'golangci-lint', 'run',
+      '--output.json.path', 'stdout',
+      '--show-stats=false',
+      '--issues-exit-code=1',
+    },
+  },
+  root_markers = {
+    '.golangci.yml', '.golangci.yaml', '.golangci.toml', '.golangci.json',
+    'go.work', 'go.mod', '.git',
+  },
+})
+
 vim.lsp.config('pyright', {
   cmd          = { 'pyright-langserver', '--stdio' },
   filetypes    = { 'python' },
@@ -486,7 +511,7 @@ vim.lsp.config('taplo', {
   filetypes = { 'toml' },
 })
 
-vim.lsp.enable({ 'clangd', 'gopls', 'pyright', 'ruff', 'jsonls', 'yamlls', 'taplo' })
+vim.lsp.enable({ 'clangd', 'gopls', 'golangci_lint_ls', 'pyright', 'ruff', 'jsonls', 'yamlls', 'taplo' })
 
 vim.diagnostic.config({
   virtual_text     = { prefix = '●' },
