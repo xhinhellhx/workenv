@@ -1,0 +1,48 @@
+---
+# Install golangci-lint.
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Linux: official GitHub release tarball -> /usr/local/bin
+
+- name: Install golangci-lint (macOS, Homebrew)
+  community.general.homebrew:
+    name: golangci-lint
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install golangci-lint (Linux)
+  when: ansible_system == "Linux"
+  block:
+    - name: Check installed golangci-lint version
+      ansible.builtin.command: "{{ golangci_lint_install_dir }}/golangci-lint --version"
+      register: golangci_lint_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install golangci-lint {{ golangci_lint_version }} from the release tarball
+      when: golangci_lint_version not in golangci_lint_installed.stdout
+      block:
+        - name: Create a temporary directory for the golangci-lint download
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: golangci-lint
+          register: golangci_lint_tmp
+
+        - name: Download and extract golangci-lint {{ golangci_lint_version }}
+          ansible.builtin.unarchive:
+            src: "{{ golangci_lint_download_url }}"
+            dest: "{{ golangci_lint_tmp.path }}"
+            remote_src: true
+
+        - name: Install the golangci-lint binary
+          ansible.builtin.shell: |
+            set -eu
+            bin="$(find '{{ golangci_lint_tmp.path }}' -type f -name golangci-lint | head -n1)"
+            install -m 0755 "$bin" '{{ golangci_lint_install_dir }}/golangci-lint'
+          become: true
+          changed_when: true
+
+        - name: Remove the temporary directory
+          ansible.builtin.file:
+            path: "{{ golangci_lint_tmp.path }}"
+            state: absent

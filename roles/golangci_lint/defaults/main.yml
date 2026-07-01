@@ -1,0 +1,7 @@
+---
+# Default variables for the golangci_lint role.
+
+golangci_lint_version: "2.12.2"
+golangci_lint_install_dir: "/usr/local/bin"
+golangci_lint_arch: "{{ 'arm64' if ansible_architecture in ['aarch64', 'arm64'] else 'amd64' }}"
+golangci_lint_download_url: "https://github.com/golangci/golangci-lint/releases/download/v{{ golangci_lint_version }}/golangci-lint-{{ golangci_lint_version }}-linux-{{ golangci_lint_arch }}.tar.gz"
