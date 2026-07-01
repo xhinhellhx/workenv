@@ -47,6 +47,18 @@
     replace: 'POWERLEVEL9K_ICON_PADDING={{ p10k_icon_padding }}'
   when: p10k_icon_padding != "none"
 
+# my_git_formatter bakes in foreground colours (green branch, yellow counts, …)
+# meant for a background-less prompt. With the Solarized palette the VCS segment
+# has a coloured background, so those inline colours clash (green-on-yellow,
+# yellow-on-yellow). Null them out so the Git content inherits the per-state
+# segment foreground; the segment background alone conveys the Git state.
+- name: Let Git status inherit the segment foreground under Solarized
+  ansible.builtin.replace:
+    path: "{{ ansible_facts['env'].HOME }}/.p10k.zsh"
+    regexp: "(local\\s+(?:meta|clean|modified|untracked|conflicted)=)'%\\d+F'.*"
+    replace: '\1'''''
+  when: p10k_solarized in ['dark', 'light']
+
 # --- Shell fragments ----------------------------------------------------------
 - name: Deliver the Powerlevel10k instant prompt (early.d)
   ansible.builtin.copy:
@@ -105,6 +117,12 @@
       typeset -g POWERLEVEL9K_VCS_CONFLICTED_FOREGROUND={{ p.bright }}
       typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND={{ p.base_bg_alt }}
       typeset -g POWERLEVEL9K_VCS_LOADING_FOREGROUND={{ p.emphasized }}
+      # Git icon follows the per-state foreground (overrides the wizard's green icon).
+      typeset -g POWERLEVEL9K_VCS_CLEAN_VISUAL_IDENTIFIER_COLOR={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_VCS_MODIFIED_VISUAL_IDENTIFIER_COLOR={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_VCS_UNTRACKED_VISUAL_IDENTIFIER_COLOR={{ p.base_bg }}
+      typeset -g POWERLEVEL9K_VCS_CONFLICTED_VISUAL_IDENTIFIER_COLOR={{ p.bright }}
+      typeset -g POWERLEVEL9K_VCS_LOADING_VISUAL_IDENTIFIER_COLOR={{ p.emphasized }}
 
       # Prompt symbol.
       typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND={{ p10k_solarized_green }}
