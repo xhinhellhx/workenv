@@ -7,5 +7,9 @@ plantuml_deps_debian:
   - graphviz
 
 plantuml_deps_redhat:
-  - java-17-openjdk-headless
+  # Virtual provide for the distro's default headless OpenJDK (mirrors
+  # Debian's default-jre-headless). Version-pinned names like
+  # java-17-openjdk-headless aren't available on every release — e.g. RHEL 10
+  # ships Java 21 and dropped the 17 packages.
+  - java-headless
   - graphviz
