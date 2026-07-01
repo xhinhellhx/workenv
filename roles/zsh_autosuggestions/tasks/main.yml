@@ -1,0 +1,16 @@
+---
+# Install the zsh-autosuggestions plugin and enable it. Depends on zsh_config.
+
+- name: Clone zsh-autosuggestions
+  ansible.builtin.git:
+    repo: "{{ zsh_autosuggestions_repo }}"
+    dest: "{{ omz_custom }}/plugins/zsh-autosuggestions"
+    depth: 1
+    update: false
+
+- name: Enable zsh-autosuggestions (plugins.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/plugins.d/20-zsh-autosuggestions.zsh"
+    mode: "0644"
+    content: |
+      plugins+=(zsh-autosuggestions)

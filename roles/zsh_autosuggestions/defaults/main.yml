@@ -1,0 +1,4 @@
+---
+# Default variables for the zsh_autosuggestions role.
+omz_custom: "{{ oh_my_zsh_dir }}/custom"
+zsh_autosuggestions_repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
