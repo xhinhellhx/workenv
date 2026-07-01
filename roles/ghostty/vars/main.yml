@@ -1,17 +1,9 @@
 ---
 # Internal role variables (not intended to be overridden).
 
-# Host packages needed only to register the AppImage with the desktop launcher.
-# The AppImage itself bundles all of Ghostty's runtime libraries (GTK4,
-# libadwaita, ...), so no build toolchain or -devel packages are required.
-ghostty_desktop_deps_debian:
-  # update-desktop-database / desktop-file-validate
-  - desktop-file-utils
-  # gtk-update-icon-cache
-  - libgtk-4-bin
+# Package that provides snapd on the Debian and RHEL families.
+ghostty_snapd_package: "snapd"
 
-ghostty_desktop_deps_redhat:
-  # update-desktop-database / desktop-file-validate
-  - desktop-file-utils
-  # gtk-update-icon-cache (present on any GTK desktop; best-effort otherwise)
-  - gtk4
+# On the RHEL family snapd ships in EPEL, so this repository package must be
+# installed before snapd is available.
+ghostty_epel_package: "epel-release"

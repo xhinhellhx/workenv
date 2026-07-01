@@ -10,18 +10,16 @@ ghostty_config_dir: "{{ xdg_config_home | default(ansible_facts['env'].HOME ~ '/
 # Ghostty is distributed as a Homebrew cask.
 ghostty_brew_cask: "ghostty"
 
-# --- Linux (AppImage) ---------------------------------------------------------
-# Ghostty is installed on Linux from a self-contained AppImage that bundles its
-# own GTK4/libadwaita. This avoids the system-GTK version skew that breaks a
-# source build on enterprise distros (e.g. RHEL's GTK4 is too old, producing
-# theme-parser and GDK "color-mgmt" errors). Same path for Debian and RHEL.
-# Built/published by the pkgforge-dev project (unofficial upstream):
-# https://github.com/pkgforge-dev/ghostty-appimage
-ghostty_version: "1.3.1"
-ghostty_appimage_arch: "{{ 'x86_64' if ansible_facts['architecture'] in ['x86_64', 'amd64'] else 'aarch64' }}"
-ghostty_appimage_filename: "Ghostty-{{ ghostty_version }}-{{ ghostty_appimage_arch }}.AppImage"
-ghostty_appimage_url: "https://github.com/pkgforge-dev/ghostty-appimage/releases/download/v{{ ghostty_version }}/{{ ghostty_appimage_filename }}"
-# Where the AppImage is downloaded and extracted on the host.
-ghostty_appimage_dir: "/opt/ghostty"
-# Stable launcher path placed on PATH and referenced by the desktop entry.
+# --- Linux (Snap) -------------------------------------------------------------
+# Ghostty is installed on Linux from the Snap Store on both Debian/Ubuntu and
+# the RHEL family. The snap is published by Canonical and uses classic
+# confinement (terminal emulators need host access), so it is installed with
+# `--classic`. It bundles its own GTK4/libadwaita, avoiding the system-GTK
+# version skew that breaks a source build on enterprise distros (e.g. RHEL's
+# GTK4 is too old, producing theme-parser and GDK "color-mgmt" errors).
+# Ghostty is not on Flathub, so flatpak is not used.
+ghostty_snap_name: "ghostty"
+# Stable launcher path placed on PATH. snap already exposes /snap/bin/ghostty;
+# this symlink guarantees `ghostty` resolves even when /snap/bin is missing from
+# the current session's PATH.
 ghostty_bin: "/usr/local/bin/ghostty"

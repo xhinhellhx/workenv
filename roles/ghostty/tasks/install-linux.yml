@@ -1,196 +1,88 @@
 ---
-# Install Ghostty on Linux from the pkgforge-dev AppImage.
-# The AppImage is self-contained (bundles its own GTK4/libadwaita), so it runs
-# cleanly even where the system GTK is too old to build/run Ghostty from source
-# (e.g. RHEL). Identical path for Debian/Ubuntu and the RHEL family.
+# Install Ghostty on Linux from the Snap Store (Debian/Ubuntu and RHEL family).
+# The ghostty snap (published by Canonical) uses classic confinement and bundles
+# its own GTK4/libadwaita, so it runs cleanly even where the system GTK is too
+# old to build Ghostty from source (e.g. RHEL). snapd also registers the desktop
+# entry and icons itself, so no manual desktop integration is required.
+# (Ghostty is not published on Flathub, so flatpak is not used here.)
 
 - name: Fail on unsupported Linux distribution
   ansible.builtin.fail:
     msg: >-
       Unsupported OS family '{{ ansible_facts['os_family'] }}'. The ghostty role
-      installs the AppImage only on Debian/Ubuntu and RHEL-family systems.
+      installs the snap only on Debian/Ubuntu and RHEL-family systems.
   when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
 
-# --- Desktop-integration tooling ---------------------------------------------
-# Only the launcher-registration helpers; the AppImage carries everything else.
-- name: Install desktop-integration tools (Debian/Ubuntu)
+# --- snapd bootstrap (Debian/Ubuntu) -----------------------------------------
+- name: Install snapd (Debian/Ubuntu)
   ansible.builtin.apt:
-    name: "{{ ghostty_desktop_deps_debian }}"
+    name: "{{ ghostty_snapd_package }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
   become: true
   when: ansible_facts['os_family'] == "Debian"
 
-- name: Install desktop-integration tools (RHEL family)
+# --- snapd bootstrap (RHEL family) -------------------------------------------
+# snapd lives in EPEL on the RHEL family, so enable EPEL first. Classic snaps
+# also require /snap to exist; on RHEL snapd stores snaps under
+# /var/lib/snapd/snap, so the /snap symlink has to be created by hand (without
+# it, `snap install --classic` refuses to run).
+- name: Enable EPEL (RHEL family)
   ansible.builtin.dnf:
-    name: "{{ ghostty_desktop_deps_redhat }}"
+    name: "{{ ghostty_epel_package }}"
     state: present
   become: true
   when: ansible_facts['os_family'] == "RedHat"
 
-# --- Download + extract the AppImage -----------------------------------------
-- name: Ensure the Ghostty AppImage directory exists
+- name: Install snapd (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ ghostty_snapd_package }}"
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Create the /snap symlink required by classic snaps (RHEL family)
   ansible.builtin.file:
-    path: "{{ ghostty_appimage_dir }}"
-    state: directory
-    mode: "0755"
+    src: /var/lib/snapd/snap
+    dest: /snap
+    state: link
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+# --- Enable snapd and wait for seeding (all families) -------------------------
+- name: Enable and start the snapd socket
+  ansible.builtin.systemd:
+    name: snapd.socket
+    state: started
+    enabled: true
   become: true
 
-- name: Download the Ghostty AppImage {{ ghostty_version }}
-  ansible.builtin.get_url:
-    url: "{{ ghostty_appimage_url }}"
-    dest: "{{ ghostty_appimage_dir }}/{{ ghostty_appimage_filename }}"
-    mode: "0755"
+# A freshly installed snapd must finish seeding before it accepts installs.
+# `snap wait system seed.loaded` blocks until seeding completes and returns
+# immediately once seeded, so it is safe (and idempotent) to run every time.
+- name: Wait for snapd to finish seeding
+  ansible.builtin.command:
+    cmd: snap wait system seed.loaded
   become: true
-  register: ghostty_appimage_download
+  changed_when: false
 
-# Extract rather than run via FUSE: deterministic on minimal/headless hosts
-# (no fusermount needed) and faster to launch. `--appimage-extract` is handled
-# by the AppImage's own runtime and needs no system FUSE.
-# Not a handler: later tasks in this file (stat AppRun, symlink onto PATH, icon
-# mirroring) consume the extracted tree, so it must be extracted inline before
-# them — handlers run at the end of the play, too late for those dependencies.
-- name: (Re)extract the AppImage when it changed  # noqa: no-handler
-  when: ghostty_appimage_download is changed
+# --- Install Ghostty ----------------------------------------------------------
+- name: Install the Ghostty snap (classic confinement)
+  community.general.snap:
+    name: "{{ ghostty_snap_name }}"
+    classic: true
+    state: present
   become: true
-  block:
-    - name: Remove any previous extraction
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ ghostty_appimage_dir }}/squashfs-root"
-        - "{{ ghostty_appimage_dir }}/AppDir"
 
-    - name: Extract the AppImage
-      ansible.builtin.command:
-        cmd: "./{{ ghostty_appimage_filename }} --appimage-extract"
-        chdir: "{{ ghostty_appimage_dir }}"
-      changed_when: true
-
-    - name: Move the extracted tree into AppDir
-      ansible.builtin.command:
-        cmd: "mv {{ ghostty_appimage_dir }}/squashfs-root {{ ghostty_appimage_dir }}/AppDir"
-      changed_when: true
-
-- name: Stat the extracted AppRun launcher
-  ansible.builtin.stat:
-    path: "{{ ghostty_appimage_dir }}/AppDir/AppRun"
-  become: true
-  register: ghostty_apprun
-
-- name: Fail clearly if the AppImage did not extract a runnable AppRun
-  ansible.builtin.assert:
-    that:
-      - ghostty_apprun.stat.exists
-    fail_msg: >-
-      No AppRun at {{ ghostty_appimage_dir }}/AppDir/AppRun — the AppImage did
-      not extract. Check the download URL ({{ ghostty_appimage_url }}) and that
-      the architecture asset exists for this release.
-    success_msg: "Ghostty AppImage extracted at {{ ghostty_appimage_dir }}/AppDir."
-
+# snap exposes the launcher at /snap/bin/ghostty (added to PATH via
+# /etc/profile.d/snapd.sh). Symlink it to the standard PATH location so `ghostty`
+# works from any shell immediately, without depending on /snap/bin being on the
+# current session's PATH.
 - name: Symlink the Ghostty launcher onto PATH
   ansible.builtin.file:
-    src: "{{ ghostty_appimage_dir }}/AppDir/AppRun"
+    src: /snap/bin/ghostty
     dest: "{{ ghostty_bin }}"
     state: link
     force: true
   become: true
-
-# On RHEL the extracted tree under /opt can carry a non-default SELinux context,
-# which can deny executing AppRun or loading the bundled libraries. Restore the
-# policy-default contexts on the whole tree.
-- name: Restore SELinux contexts on the extracted AppImage (RHEL family)
-  ansible.builtin.command:
-    cmd: "restorecon -Rv {{ ghostty_appimage_dir }}"
-  become: true
-  register: ghostty_restorecon
-  changed_when: ghostty_restorecon.stdout | length > 0
-  failed_when: false
-  when: ansible_facts['os_family'] == "RedHat"
-
-# --- Desktop integration ------------------------------------------------------
-# AppImages do not register themselves with the launcher. Install our own entry
-# into /usr/share (always scanned) with an absolute Exec — GNOME hides entries
-# whose Exec is relative or not on the desktop environment's PATH, and the
-# AppImage's bundled .desktop uses a relative `Exec=ghostty`.
-- name: Install a Ghostty desktop entry (always-scanned location)
-  ansible.builtin.copy:
-    dest: /usr/share/applications/com.mitchellh.ghostty.desktop
-    mode: "0644"
-    content: |
-      [Desktop Entry]
-      Type=Application
-      Name=Ghostty
-      GenericName=Terminal
-      Comment=Fast, native, feature-rich terminal emulator
-      Exec={{ ghostty_bin }}
-      Icon=com.mitchellh.ghostty
-      Terminal=false
-      Categories=System;TerminalEmulator;
-      Keywords=terminal;tty;pty;
-      StartupNotify=true
-      StartupWMClass=com.mitchellh.ghostty
-      Actions=new-window
-
-      [Desktop Action new-window]
-      Name=New Window
-      Exec={{ ghostty_bin }}
-  become: true
-
-# GNOME silently ignores an entry that fails validation, which reads as
-# "installed but not visible". Surface any hard error at provision time.
-- name: Validate the installed Ghostty desktop entry
-  ansible.builtin.command:
-    cmd: desktop-file-validate /usr/share/applications/com.mitchellh.ghostty.desktop
-  become: true
-  changed_when: false
-  register: ghostty_desktop_validate
-  failed_when: ghostty_desktop_validate.rc != 0
-
-# Mirror the icons bundled inside the AppImage into /usr/share/icons so the
-# launcher resolves Icon=com.mitchellh.ghostty (the hicolor theme is the
-# always-scanned freedesktop fallback).
-- name: Find Ghostty icons inside the extracted AppImage
-  ansible.builtin.find:
-    paths: "{{ ghostty_appimage_dir }}/AppDir/usr/share/icons/hicolor"
-    patterns: "com.mitchellh.ghostty.*"
-    recurse: true
-  become: true
-  register: ghostty_icons
-
-- name: Mirror Ghostty icons into /usr/share/icons/hicolor
-  ansible.builtin.copy:
-    src: "{{ item.path }}"
-    dest: "{{ item.path | replace(ghostty_appimage_dir ~ '/AppDir/usr/share/icons', '/usr/share/icons') }}"
-    remote_src: true
-    mode: "0644"
-  become: true
-  loop: "{{ ghostty_icons.files }}"
-  loop_control:
-    label: "{{ item.path | basename }}"
-
-- name: Restore SELinux contexts on the desktop entry and icons (RHEL family)
-  ansible.builtin.command:
-    cmd: "restorecon -Rv /usr/share/applications/com.mitchellh.ghostty.desktop /usr/share/icons/hicolor"
-  become: true
-  register: ghostty_desktop_restorecon
-  changed_when: ghostty_desktop_restorecon.stdout | length > 0
-  failed_when: false
-  when: ansible_facts['os_family'] == "RedHat"
-
-- name: Refresh the desktop application database
-  ansible.builtin.command:
-    cmd: "update-desktop-database /usr/share/applications"
-  become: true
-  changed_when: true
-
-# Best-effort: the launcher still resolves icons without a warm cache, so do not
-# fail the run if gtk-update-icon-cache is unavailable.
-- name: Refresh the hicolor icon cache
-  ansible.builtin.command:
-    cmd: "gtk-update-icon-cache --force --ignore-theme-index /usr/share/icons/hicolor"
-  become: true
-  changed_when: true
-  failed_when: false

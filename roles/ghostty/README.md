@@ -2,38 +2,43 @@
 
 Installs the [Ghostty](https://ghostty.org) terminal emulator.
 
-| Platform        | Method                                                      |
-| --------------- | ----------------------------------------------------------- |
-| macOS           | Homebrew cask (`ghostty_brew_cask`)                         |
-| Debian / Ubuntu | Self-contained AppImage (pkgforge-dev), extracted to `/opt` |
-| RHEL family     | Self-contained AppImage (pkgforge-dev), extracted to `/opt` |
+| Platform        | Method                                          |
+| --------------- | ----------------------------------------------- |
+| macOS           | Homebrew cask (`ghostty_brew_cask`)             |
+| Debian / Ubuntu | Snap Store, classic confinement (`snap`)        |
+| RHEL family     | Snap Store, classic confinement (`snap`, EPEL)  |
 
-On Linux the role downloads the [pkgforge-dev AppImage](https://github.com/pkgforge-dev/ghostty-appimage)
-at `ghostty_version`, extracts it under `ghostty_appimage_dir` (no system FUSE
-needed), and symlinks `AppRun` to `ghostty_bin` on PATH. The AppImage bundles
-its own GTK4/libadwaita, so it runs cleanly where the **system GTK is too old to
-build/run Ghostty from source** (notably RHEL, where a source build hits GTK
-theme-parser and GDK `color-mgmt` errors). Because AppImages do not register
-themselves, the role installs a desktop entry into `/usr/share/applications`
-with an **absolute `Exec`** (GNOME hides relative-Exec entries), mirrors the
-bundled icons into `/usr/share/icons/hicolor`, restores SELinux contexts on
-RHEL, and refreshes the desktop/icon caches so Ghostty appears in the launcher.
-Homebrew is ensured by the `homebrew` role dependency.
+On Linux the role installs the [`ghostty` snap](https://snapcraft.io/ghostty)
+(published by Canonical) with **classic confinement**, which terminal emulators
+require. The snap bundles its own GTK4/libadwaita, so it runs cleanly where the
+**system GTK is too old to build/run Ghostty from source** (notably RHEL, where
+a source build hits GTK theme-parser and GDK `color-mgmt` errors). snapd
+registers the desktop entry and icons itself, so no manual desktop integration
+is needed. The role symlinks `/snap/bin/ghostty` to `ghostty_bin` so the
+`ghostty` command works from any shell. Homebrew is ensured by the `homebrew`
+role dependency.
 
-> The AppImage is published by the unofficial pkgforge-dev project, not the
-> Ghostty team. On a GNOME/Wayland session a fresh entry may only appear after a
-> log out / log in.
+The role configures the package manager first:
+
+- **Debian / Ubuntu** — installs `snapd` via `apt` and enables `snapd.socket`.
+- **RHEL family** — enables **EPEL** (which provides `snapd`), installs `snapd`,
+  creates the `/snap` → `/var/lib/snapd/snap` symlink that classic snaps
+  require, and enables `snapd.socket`.
+
+It then waits for snapd seeding (`snap wait system seed.loaded`) before
+installing, so the run does not race a freshly bootstrapped snapd.
+
+> Ghostty is **not on Flathub**, so flatpak is not used. On a GNOME/Wayland
+> session a freshly installed snap may only appear in the launcher after a log
+> out / log in.
 
 ## Variables
 
-| Variable                  | Default            | Description                                   |
-| ------------------------- | ------------------ | --------------------------------------------- |
-| `ghostty_brew_cask`       | `ghostty`          | Homebrew cask name (macOS).                   |
-| `ghostty_version`         | `1.3.1`            | AppImage release version (Linux).             |
-| `ghostty_appimage_arch`   | derived            | `x86_64` or `aarch64` from the host arch.     |
-| `ghostty_appimage_url`    | pkgforge-dev URL   | AppImage download URL.                         |
-| `ghostty_appimage_dir`    | `/opt/ghostty`     | Download + extraction directory.              |
-| `ghostty_bin`             | `/usr/local/bin/ghostty` | Launcher symlink on PATH (desktop `Exec`). |
+| Variable              | Default                  | Description                                    |
+| --------------------- | ------------------------ | ---------------------------------------------- |
+| `ghostty_brew_cask`   | `ghostty`                | Homebrew cask name (macOS).                    |
+| `ghostty_snap_name`   | `ghostty`                | Snap package name (Linux).                     |
+| `ghostty_bin`         | `/usr/local/bin/ghostty` | Launcher symlink on PATH → `/snap/bin/ghostty`. |
 
 ## Configuration
 
@@ -50,9 +55,9 @@ on both macOS and Linux). Current settings:
 ## Layout
 
 - `tasks/install-macos.yml` — Homebrew cask install.
-- `tasks/install-linux.yml` — AppImage download + extraction, launcher symlink, desktop entry, icon mirror, SELinux, cache refresh.
+- `tasks/install-linux.yml` — snapd bootstrap (apt / EPEL+dnf), seeding wait, snap install, launcher symlink.
 - `tasks/config.yml` — deploys the config file and bundled themes.
-- `vars/main.yml` — per-distro desktop-integration package lists.
+- `vars/main.yml` — snapd / EPEL package names.
 - `files/config/ghostty/config` — the deployed Ghostty config.
 - `files/config/ghostty/themes/` — bundled theme files (e.g. `Solarized Dark
   Patched`) deployed to `~/.config/ghostty/themes/`, so the theme resolves
