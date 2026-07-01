@@ -1,0 +1,17 @@
+---
+# Install the zsh-syntax-highlighting plugin and enable it. Depends on zsh_config.
+# Numbered 90 so it loads near the end (required by the plugin).
+
+- name: Clone zsh-syntax-highlighting
+  ansible.builtin.git:
+    repo: "{{ zsh_syntax_highlighting_repo }}"
+    dest: "{{ omz_custom }}/plugins/zsh-syntax-highlighting"
+    depth: 1
+    update: false
+
+- name: Enable zsh-syntax-highlighting (plugins.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/plugins.d/90-zsh-syntax-highlighting.zsh"
+    mode: "0644"
+    content: |
+      plugins+=(zsh-syntax-highlighting)
