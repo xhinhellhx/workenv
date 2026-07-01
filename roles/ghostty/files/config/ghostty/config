@@ -11,6 +11,15 @@ cursor-style-blink = true
 # Colorscheme
 theme = Solarized Dark Patched
 
+# Splits appearance
+# Bright Solarized base1 so the divider between panes is clearly visible
+# against the dark background.
+split-divider-color = #93a1a1
+# Dim unfocused splits so the focused pane stands out (lower = dimmer).
+unfocused-split-opacity = 0.6
+# Color blended over unfocused splits (Solarized base03 background).
+unfocused-split-fill = #002b36
+
 # Automatic updates (macOS / Sparkle; ignored on Linux builds)
 auto-update = download
 auto-update-channel = stable
