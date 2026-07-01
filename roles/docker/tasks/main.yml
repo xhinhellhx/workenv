@@ -4,12 +4,43 @@
 #   - Linux: official convenience script, then enable the daemon and grant
 #     group access (Debian/Ubuntu and RHEL family).
 
-- name: Install Docker Desktop (macOS)
-  community.general.homebrew_cask:
-    name: "{{ docker_brew_cask }}"
-    state: present
-    path: "{{ homebrew_prefix }}/bin"
+- name: Install and auto-start Docker Desktop (macOS)
   when: ansible_system == "Darwin"
+  block:
+    - name: Install Docker Desktop (macOS)
+      community.general.homebrew_cask:
+        name: "{{ docker_brew_cask }}"
+        state: present
+        path: "{{ homebrew_prefix }}/bin"
+
+    - name: Ensure the user LaunchAgents directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/Library/LaunchAgents"
+        state: directory
+        mode: "0755"
+
+    - name: Start Docker Desktop at login (LaunchAgent)
+      ansible.builtin.copy:
+        dest: "{{ ansible_env.HOME }}/Library/LaunchAgents/com.workenv.docker-autostart.plist"
+        mode: "0644"
+        content: |
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>Label</key>
+              <string>com.workenv.docker-autostart</string>
+              <key>ProgramArguments</key>
+              <array>
+                  <string>/usr/bin/open</string>
+                  <string>--background</string>
+                  <string>-a</string>
+                  <string>Docker</string>
+              </array>
+              <key>RunAtLoad</key>
+              <true/>
+          </dict>
+          </plist>
 
 - name: Install Docker (Linux)
   when: ansible_system == "Linux"
