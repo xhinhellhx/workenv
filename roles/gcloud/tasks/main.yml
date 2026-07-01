@@ -1,8 +1,11 @@
 ---
 # Install the Google Cloud CLI (gcloud).
 #   - macOS: Homebrew cask (Homebrew ensured by the `homebrew` role dependency)
-#   - Debian/Ubuntu: official apt repo
-#   - RHEL family: official yum repo
+#   - Linux: official versioned tarball from dl.google.com -> /opt
+#
+# The tarball is used instead of the apt/yum repositories: it is a single code
+# path for every distro and architecture, needs no GPG keyring or repo setup,
+# and (unlike the distro packages) leaves `gcloud components update` enabled.
 
 - name: Install Google Cloud SDK (macOS, Homebrew cask)
   community.general.homebrew_cask:
@@ -11,88 +14,47 @@
     path: "{{ homebrew_prefix }}/bin"
   when: ansible_facts['system'] == "Darwin"
 
-- name: Install Google Cloud CLI (Debian/Ubuntu)
-  when: ansible_facts['os_family'] == "Debian"
-  become: true
+- name: Install Google Cloud CLI (Linux)
+  when: ansible_facts['system'] == "Linux"
   block:
-    - name: Install apt prerequisites
-      ansible.builtin.apt:
-        name:
-          - apt-transport-https
-          - ca-certificates
-          - gnupg
-          - curl
-          - python3-debian
-        state: present
-        update_cache: true
-        cache_valid_time: 3600
+    - name: Check installed gcloud version
+      ansible.builtin.command: "{{ gcloud_install_dir }}/bin/gcloud version"
+      register: gcloud_installed
+      changed_when: false
+      failed_when: false
 
-    - name: Ensure the apt keyrings directory exists
-      ansible.builtin.file:
-        path: "{{ gcloud_apt_keyring_path | dirname }}"
-        state: directory
-        mode: "0755"
+    - name: Determine whether a gcloud (re)install is required
+      ansible.builtin.set_fact:
+        gcloud_install_required: "{{ gcloud_force or ('Google Cloud SDK ' ~ gcloud_version) not in gcloud_installed.stdout }}"
 
-    - name: Add the Google Cloud apt signing key (dearmored)
-      # The upstream key is ASCII-armored; deb822 Signed-By needs a binary
-      # keyring, so dearmor it locally instead of pointing signed_by at the URL.
-      ansible.builtin.get_url:
-        url: "{{ gcloud_apt_key_url }}"
-        dest: /etc/apt/keyrings/cloud.google.asc
+    - name: Install gcloud from the official tarball, version {{ gcloud_version }}
+      when: gcloud_install_required
+      become: true
+      block:
+        - name: Remove any existing gcloud installation
+          # The tarball is self-contained, so a clean directory guarantees no
+          # stale components survive an upgrade. PATH/completion live in
+          # /etc/profile.d (below) and are unaffected.
+          ansible.builtin.file:
+            path: "{{ gcloud_install_dir }}"
+            state: absent
+
+        - name: Download and extract gcloud {{ gcloud_version }}
+          ansible.builtin.unarchive:
+            src: "{{ gcloud_download_url }}"
+            dest: "{{ gcloud_install_dir | dirname }}"
+            remote_src: true
+            creates: "{{ gcloud_install_dir }}/bin/gcloud"
+
+    - name: Add gcloud to PATH and enable completion (system-wide)
+      ansible.builtin.copy:
+        dest: /etc/profile.d/gcloud.sh
+        content: |
+          export PATH="$PATH:{{ gcloud_install_dir }}/bin"
+          if [ -n "${BASH_VERSION:-}" ] && [ -f "{{ gcloud_install_dir }}/completion.bash.inc" ]; then
+            . "{{ gcloud_install_dir }}/completion.bash.inc"
+          elif [ -n "${ZSH_VERSION:-}" ] && [ -f "{{ gcloud_install_dir }}/completion.zsh.inc" ]; then
+            . "{{ gcloud_install_dir }}/completion.zsh.inc"
+          fi
         mode: "0644"
-      register: gcloud_apt_key_download
-
-    - name: Dearmor the Google Cloud apt signing key
-      # Always regenerate the binary keyring from the freshly downloaded armored
-      # key. A `creates:` guard here would skip forever once the file exists,
-      # so a keyring left corrupt by an earlier run would never be repaired
-      # ("gpg: packet(6) with unknown version 6" on apt update). --yes forces
-      # the overwrite.
-      ansible.builtin.command:
-        cmd: "gpg --batch --yes --dearmor -o {{ gcloud_apt_keyring_path }} /etc/apt/keyrings/cloud.google.asc"
-      changed_when: gcloud_apt_key_download is changed
-
-    - name: Add the Google Cloud apt repository (deb822)
-      ansible.builtin.deb822_repository:
-        name: google-cloud-sdk
-        types: [deb]
-        uris: "{{ gcloud_apt_repo }}"
-        suites: [cloud-sdk]
-        components: [main]
-        signed_by: "{{ gcloud_apt_keyring_path }}"
-        state: present
-
-    - name: Install the google-cloud-cli package
-      ansible.builtin.apt:
-        name: "{{ gcloud_package }}"
-        state: present
-        update_cache: true
-
-- name: Install Google Cloud CLI (RHEL family)
-  when: ansible_facts['os_family'] == "RedHat"
-  become: true
-  block:
-    - name: Import the Google Cloud RPM signing keys
-      # Listing the keys under `gpgkey` only tells dnf where to fetch them; the
-      # auto-import at install time is unreliable and leaves the package-signing
-      # key missing ("public key ... is not installed"). Importing them into the
-      # rpmdb up front guarantees signature validation succeeds.
-      ansible.builtin.rpm_key:
-        key: "{{ item }}"
-        state: present
-      loop: "{{ gcloud_yum_gpgkey }}"
-
-    - name: Add the Google Cloud yum repository
-      ansible.builtin.yum_repository:
-        name: google-cloud-cli
-        description: Google Cloud CLI
-        baseurl: "{{ gcloud_yum_baseurl }}"
-        enabled: true
-        gpgcheck: true
-        repo_gpgcheck: false
-        gpgkey: "{{ gcloud_yum_gpgkey }}"
-
-    - name: Install the google-cloud-cli package
-      ansible.builtin.dnf:
-        name: "{{ gcloud_package }}"
-        state: present
+      become: true

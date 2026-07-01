@@ -4,14 +4,18 @@
 # macOS: Google Cloud SDK Homebrew cask.
 gcloud_brew_cask: "google-cloud-sdk"
 
-# Linux: package + repo details (Google Cloud CLI apt/yum repositories).
-gcloud_package: "google-cloud-cli"
-gcloud_apt_key_url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
-gcloud_apt_keyring_path: "/etc/apt/keyrings/cloud.google.gpg"
-gcloud_apt_repo: "https://packages.cloud.google.com/apt"
-gcloud_yum_baseurl: "https://packages.cloud.google.com/yum/repos/cloud-sdk-el{{ ansible_facts['distribution_major_version'] }}-x86_64"
-# Google signs its yum metadata and RPM packages with two separate keys; both
-# must be imported or dnf fails with "failed to validate GPG signature".
-gcloud_yum_gpgkey:
-  - "https://packages.cloud.google.com/yum/doc/yum-key.gpg"
-  - "https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+# Linux: install a pinned Google Cloud CLI from the official tarball.
+# Release notes / versions: https://cloud.google.com/sdk/docs/release-notes
+gcloud_version: "573.0.0"
+
+# Where the SDK is installed. The tarball contains a top-level
+# "google-cloud-sdk/" directory, so it is extracted into this path's parent.
+gcloud_install_dir: "/opt/google-cloud-sdk"
+
+# Force a reinstall even when the pinned version is already present.
+gcloud_force: false
+
+# Download details (official dl.google.com tarball). The ARM64 build uses the
+# "arm" suffix; everything else uses "x86_64".
+gcloud_arch: "{{ 'arm' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'x86_64' }}"
+gcloud_download_url: "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-{{ gcloud_version }}-linux-{{ gcloud_arch }}.tar.gz"
