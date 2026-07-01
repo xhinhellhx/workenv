@@ -1,7 +1,0 @@
----
-# Top-level playbook: configures the work environment on target machines.
-- name: Configure work environment
-  hosts: workstations
-  gather_facts: true
-  roles:
-    - neovim
