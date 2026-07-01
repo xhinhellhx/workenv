@@ -1,0 +1,41 @@
+---
+# Internal role variables (not intended to be overridden).
+
+# Python build dependencies (pyenv wiki "Suggested build environment").
+# https://github.com/pyenv/pyenv/wiki#suggested-build-environment
+pyenv_build_deps_debian:
+  - build-essential
+  - curl
+  - git
+  - libssl-dev
+  - zlib1g-dev
+  - libbz2-dev
+  - libreadline-dev
+  - libsqlite3-dev
+  - libncursesw5-dev
+  - xz-utils
+  - tk-dev
+  - libxml2-dev
+  - libxmlsec1-dev
+  - libffi-dev
+  - liblzma-dev
+
+pyenv_build_deps_redhat:
+  - gcc
+  - make
+  - patch
+  - git
+  - zlib-devel
+  - bzip2
+  - bzip2-devel
+  - readline-devel
+  - sqlite
+  - sqlite-devel
+  - openssl-devel
+  - tk-devel
+  - libffi-devel
+  - xz
+  - xz-devel
+  - libuuid-devel
+  - gdbm-devel
+  - ncurses-devel

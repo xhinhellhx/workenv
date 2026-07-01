@@ -1,0 +1,15 @@
+---
+# Install pyenv and the Python build dependencies, then wire up the shell.
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Linux: git clone + distro build dependencies (Debian/Ubuntu, RHEL family)
+
+- name: Install pyenv on macOS (Homebrew)
+  ansible.builtin.import_tasks: install-macos.yml
+  when: ansible_system == "Darwin"
+
+- name: Install pyenv on Linux (git clone)
+  ansible.builtin.import_tasks: install-linux.yml
+  when: ansible_system == "Linux"
+
+- name: Configure pyenv shell integration
+  ansible.builtin.import_tasks: shellrc.yml

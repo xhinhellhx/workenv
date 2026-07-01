@@ -1,0 +1,13 @@
+---
+# Add the pyenv initialisation block to the shell rc file.
+
+- name: Configure pyenv in {{ pyenv_shellrc | basename }}
+  ansible.builtin.blockinfile:
+    path: "{{ pyenv_shellrc }}"
+    create: true
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED: pyenv"
+    block: |
+      export PYENV_ROOT="{{ pyenv_root }}"
+      [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
+      eval "$(pyenv init - zsh)"

@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: pyenv
+  author: xhinhellhx
+  description: Installs pyenv and the Python build dependencies
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew

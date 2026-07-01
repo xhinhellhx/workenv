@@ -1,0 +1,33 @@
+---
+# Install Python build dependencies and clone pyenv on Linux.
+# Supports Debian/Ubuntu and the RHEL family.
+
+- name: Install Python build dependencies (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ pyenv_build_deps_debian }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Install Python build dependencies (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ pyenv_build_deps_redhat }}"
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"
+
+- name: Fail on unsupported Linux distribution
+  ansible.builtin.fail:
+    msg: >-
+      Unsupported OS family '{{ ansible_os_family }}'. The pyenv role installs
+      build dependencies only on Debian/Ubuntu and RHEL-family systems.
+  when: ansible_os_family not in ["Debian", "RedHat"]
+
+- name: Clone pyenv
+  ansible.builtin.git:
+    repo: "{{ pyenv_repo }}"
+    dest: "{{ pyenv_root }}"
+    version: "{{ pyenv_version | default(omit, true) }}"
+    update: "{{ pyenv_update }}"

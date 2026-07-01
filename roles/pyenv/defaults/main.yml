@@ -1,0 +1,28 @@
+---
+# Default variables for the pyenv role.
+
+# Where pyenv lives (used by the Linux git clone and the shell init).
+pyenv_root: "{{ ansible_env.HOME }}/.pyenv"
+
+# --- Linux (git clone) --------------------------------------------------------
+pyenv_repo: "https://github.com/pyenv/pyenv.git"
+# Git ref to check out (empty = default branch / latest).
+pyenv_version: ""
+# Update an existing checkout to the latest ref on re-run.
+pyenv_update: false
+
+# --- macOS (Homebrew) ---------------------------------------------------------
+# pyenv plus the Python build dependencies recommended by the pyenv wiki.
+pyenv_brew_packages:
+  - pyenv
+  - openssl@3
+  - readline
+  - sqlite
+  - xz
+  - zlib
+  - tcl-tk
+  - libffi
+
+# --- Shell integration --------------------------------------------------------
+# Shell rc file to add the pyenv init block to.
+pyenv_shellrc: "{{ ansible_env.HOME }}/.zshrc"

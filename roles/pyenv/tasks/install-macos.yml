@@ -1,0 +1,8 @@
+---
+# Install pyenv and Python build dependencies on macOS via Homebrew.
+
+- name: Install pyenv and Python build dependencies
+  community.general.homebrew:
+    name: "{{ pyenv_brew_packages }}"
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
