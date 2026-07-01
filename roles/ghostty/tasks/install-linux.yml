@@ -208,7 +208,12 @@
 # wins. The entry is copied verbatim from the snap's own (icon, name and field
 # codes preserved) with only the Exec repointed at ghostty_bin — which is either
 # the plain symlink to /snap/bin/ghostty or, on VMs, the software-GL wrapper, so
-# the reroute is correct in both cases.
+# the reroute is correct in both cases. Note the snap's own Exec does NOT use a
+# /snap/bin/ghostty path (snapd emits e.g. /var/lib/snapd/usr/local/bin/ghostty),
+# so the launcher is matched by its trailing binary name rather than a fixed
+# path; otherwise the reroute silently misses and the grid icon launches the raw
+# snap, which then dies with "OpenGL is too old" on a VM. regex_replace rewrites
+# every occurrence, so the main Exec and each Desktop Action's Exec are covered.
 - name: Stat the snap's Ghostty desktop entry
   ansible.builtin.stat:
     path: "{{ ghostty_snap_desktop_file }}"
@@ -226,6 +231,6 @@
     mode: "0644"
     content: >-
       {{ (ghostty_snap_desktop_content.content | b64decode)
-         | regex_replace('/snap/bin/ghostty', ghostty_bin) }}
+         | regex_replace('Exec=\S+/ghostty', 'Exec=' ~ ghostty_bin) }}
   become: true
   when: ghostty_snap_desktop.stat.exists | default(false)
