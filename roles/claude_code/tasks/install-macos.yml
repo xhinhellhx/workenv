@@ -1,0 +1,8 @@
+---
+# Install Claude Code on macOS via Homebrew.
+
+- name: Install Claude Code
+  community.general.homebrew:
+    name: "{{ claude_code_brew_package }}"
+    state: present
+    path: "{{ homebrew_prefix }}/bin"

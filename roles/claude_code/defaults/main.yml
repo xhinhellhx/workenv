@@ -1,0 +1,21 @@
+---
+# Default variables for the claude_code role.
+
+# --- macOS (Homebrew) ---------------------------------------------------------
+# Homebrew formula/cask name for Claude Code.
+claude_code_brew_package: "claude-code"
+
+# --- Linux (install script) ---------------------------------------------------
+# Official installer used on Linux.
+claude_code_install_url: "https://claude.ai/install.sh"
+
+# Version argument passed to the installer: "stable", "latest", or a
+# specific version such as "1.2.3".
+claude_code_version: "stable"
+
+# Installer drops the binary here (per-user install, no root required).
+claude_code_bin: "{{ ansible_env.HOME }}/.local/bin/claude"
+
+# Set to true to re-run the installer even when Claude Code is already present
+# (e.g. to upgrade to a newer version).
+claude_code_force: false
