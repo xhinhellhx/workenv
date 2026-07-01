@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: goreleaser
+  author: xhinhellhx
+  description: Installs GoReleaser (Go release automation)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew

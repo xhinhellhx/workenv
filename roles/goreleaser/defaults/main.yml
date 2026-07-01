@@ -1,0 +1,7 @@
+---
+# Default variables for the goreleaser role.
+
+goreleaser_version: "2.16.0"
+goreleaser_install_dir: "/usr/local/bin"
+goreleaser_arch: "{{ 'arm64' if ansible_architecture in ['aarch64', 'arm64'] else 'x86_64' }}"
+goreleaser_download_url: "https://github.com/goreleaser/goreleaser/releases/download/v{{ goreleaser_version }}/goreleaser_Linux_{{ goreleaser_arch }}.tar.gz"
