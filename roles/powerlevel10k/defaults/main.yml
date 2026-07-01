@@ -22,3 +22,10 @@ p10k_few_icons: true
 # Matches the Solarized terminal themes (e.g. the ghostty role's
 # "Solarized Dark Patched").
 p10k_solarized: "dark"
+
+# Force the shell cursor shape via a DECSCUSR escape, re-applied before each
+# prompt (works in any terminal that honours DECSCUSR, independent of the
+# ghostty role's cursor-style config). off leaves the terminal's own setting.
+# off | blinking_block | steady_block | blinking_underline | steady_underline
+#     | blinking_bar | steady_bar
+p10k_cursor_style: "blinking_block"

@@ -22,6 +22,15 @@ p10k_solarized_palettes:
     emphasized: 240   # base01  #586e75
     bright: 234       # base03  #002b36
 
+# DECSCUSR (CSI Ps SP q) parameter for each cursor shape.
+p10k_cursor_style_codes:
+  blinking_block: 1
+  steady_block: 2
+  blinking_underline: 3
+  steady_underline: 4
+  blinking_bar: 5
+  steady_bar: 6
+
 # Accent colours — shared across both modes.
 p10k_solarized_yellow: 136   # #b58900
 p10k_solarized_orange: 166   # #cb4b16

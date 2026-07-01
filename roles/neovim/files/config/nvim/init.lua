@@ -108,7 +108,17 @@ require('lazy').setup({
     'maxmx03/solarized.nvim',
     lazy     = false,
     priority = 1000,
-    opts     = {},
+    opts     = {
+      -- Match the terminal background exactly. Ghostty uses the "Solarized
+      -- Dark Patched" theme (background #001e27, see the ghostty role), while
+      -- solarized.nvim defaults to standard Solarized base03 (#002b36) — that
+      -- is lighter/greener and made nvim's background visibly differ from the
+      -- shell. base03 is the Normal background, so overriding it makes the
+      -- editor blend seamlessly into the terminal.
+      on_colors = function(_colors)
+        return { base03 = '#001e27' }
+      end,
+    },
     config   = function(_, opts)
       require('solarized').setup(opts)
     end,

@@ -180,3 +180,28 @@
     path: "{{ zsh_fragment_dir }}/rc.d/91-powerlevel10k-solarized.zsh"
     state: absent
   when: p10k_solarized not in ['dark', 'light']
+
+# --- Cursor shape -------------------------------------------------------------
+# A DECSCUSR escape, not a POWERLEVEL9K_* setting: re-applied via a precmd hook
+# so the shape survives commands that change the cursor (vim, etc.). Works in any
+# terminal that honours DECSCUSR, independent of the ghostty role's cursor config.
+- name: "Force the shell cursor shape (rc.d): {{ p10k_cursor_style }}"
+  vars:
+    cursor_code: "{{ p10k_cursor_style_codes[p10k_cursor_style] }}"
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/rc.d/93-cursor-style.zsh"
+    mode: "0644"
+    content: |
+      # Shell cursor shape (managed by Ansible): {{ p10k_cursor_style }}.
+      # Emits a DECSCUSR escape before each prompt so the shape persists after
+      # commands that leave the cursor in a different state.
+      _zsh_set_cursor_style() { print -n '\e[{{ cursor_code }} q' }
+      autoload -Uz add-zsh-hook
+      add-zsh-hook precmd _zsh_set_cursor_style
+  when: p10k_cursor_style != "off"
+
+- name: Remove the cursor-shape fragment when disabled
+  ansible.builtin.file:
+    path: "{{ zsh_fragment_dir }}/rc.d/93-cursor-style.zsh"
+    state: absent
+  when: p10k_cursor_style == "off"

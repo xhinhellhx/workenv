@@ -9,10 +9,13 @@ prompt. Plugin installation/enablement lives in separate roles
 1. Clones Powerlevel10k into `~/.oh-my-zsh/custom/themes/powerlevel10k`.
 2. Generates `~/.p10k.zsh` from the chosen wizard template (`p10k_style`) and
    applies the configured tweaks.
-3. Delivers three shell fragments (the by-parts pieces it owns):
+3. Delivers its shell fragments (the by-parts pieces it owns):
    - `early.d/00-p10k-instant-prompt.zsh` — instant prompt
    - `plugins.d/10-powerlevel10k-theme.zsh` — `ZSH_THEME=…`
    - `rc.d/90-powerlevel10k.zsh` — sources `~/.p10k.zsh`
+   - `rc.d/91-powerlevel10k-solarized.zsh` — Solarized palette overlay (when enabled)
+   - `rc.d/92-powerlevel10k-fewer-icons.zsh` — trims decorative icons (when enabled)
+   - `rc.d/93-cursor-style.zsh` — forces the shell cursor shape (when enabled)
 
 ## Prompt configuration (current values)
 
@@ -25,6 +28,7 @@ prompt. Plugin installation/enablement lives in separate roles
 | `p10k_icon_padding` | `moderate` | Extra icon spacing — fixes glyph overlap (SauceCodePro). |
 | `p10k_few_icons`    | `true`     | Drop the directory and status icons (keeps the Git branch glyph). |
 | `p10k_solarized`    | `dark`     | Layer a Solarized palette over the prompt (off/dark/light). |
+| `p10k_cursor_style` | `blinking_block` | Force the shell cursor shape via DECSCUSR (off / blinking_block / steady_block / blinking_underline / steady_underline / blinking_bar / steady_bar). |
 
 > `~/.p10k.zsh` is generated with `force: false`, so it is not overwritten once
 > present. Delete it (or run `p10k configure`) to regenerate.
