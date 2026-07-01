@@ -1,7 +1,13 @@
 ---
 # Default variables for the helm role.
 
-# Official Helm 3 install script (Linux). Installs the latest release.
-helm_install_script_url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+# Helm release to install on Linux (https://github.com/helm/helm/releases).
+helm_version: "3.21.1"
+# Directory the helm binary is installed into (Linux).
+helm_install_dir: "/usr/local/bin"
+
+# Download details (Linux release tarball from https://get.helm.sh).
+helm_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
+helm_download_url: "https://get.helm.sh/helm-v{{ helm_version }}-linux-{{ helm_arch }}.tar.gz"
 # Re-run the installer even if helm is already present (to upgrade).
 helm_force: false
