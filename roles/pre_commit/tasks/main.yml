@@ -1,0 +1,45 @@
+---
+# Install pre-commit.
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Linux: pipx (isolated, latest version) on Debian/Ubuntu and RHEL family
+
+- name: Install pre-commit (macOS, Homebrew)
+  community.general.homebrew:
+    name: pre-commit
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install pre-commit (Linux)
+  when: ansible_system == "Linux"
+  block:
+    - name: Install pipx (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: pipx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      become: true
+      when: ansible_os_family == "Debian"
+
+    - name: Enable EPEL repository (RHEL family, excluding Fedora)
+      ansible.builtin.dnf:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+      become: true
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution != "Fedora"
+
+    - name: Install pipx (RHEL family)
+      ansible.builtin.dnf:
+        name: pipx
+        state: present
+      become: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Install pre-commit with pipx
+      community.general.pipx:
+        name: pre-commit
+        state: present
