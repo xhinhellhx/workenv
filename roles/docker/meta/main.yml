@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: docker
   author: xhinhellhx
-  description: Installs Docker (Desktop on macOS, Engine on Linux)
+  description: Installs Docker (CLI + Colima runtime on macOS, Engine on Linux)
   license: MIT
   min_ansible_version: "2.14"
   platforms:

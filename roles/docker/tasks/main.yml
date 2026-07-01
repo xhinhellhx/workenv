@@ -38,17 +38,53 @@
           {{ (docker_config_raw.content | b64decode | from_json)
              if docker_config_raw.content is defined else {} }}
 
-    # Merge our plugins dir into cliPluginsExtraDirs, preserving every other key
-    # (auths, credsStore, currentContext, ...) and any dirs already listed.
-    - name: Register the Homebrew CLI plugins dir in ~/.docker/config.json
+    # Merge our plugins dir into cliPluginsExtraDirs and set credsStore so the
+    # docker CLI keeps registry credentials in the macOS Keychain (via
+    # docker-credential-osxkeychain) instead of base64 plaintext in config.json.
+    # Every other key (auths, currentContext, ...) and any dirs already listed
+    # are preserved.
+    - name: Register the Homebrew CLI plugins dir and credential store in ~/.docker/config.json
       ansible.builtin.copy:
         dest: "{{ ansible_facts['env'].HOME }}/.docker/config.json"
         mode: "0600"
         content: >-
           {{ docker_config_current | combine({
                'cliPluginsExtraDirs':
-                 (docker_config_current.cliPluginsExtraDirs | default([]) + [docker_cli_plugins_dir | default('')]) | unique
+                 (docker_config_current.cliPluginsExtraDirs | default([]) + [docker_cli_plugins_dir | default('')]) | unique,
+               'credsStore': docker_creds_store
              }) | to_nice_json }}
+
+    # ~/.docker/cli-plugins is the *highest-priority* plugin dir the docker CLI
+    # searches — above cliPluginsExtraDirs. Docker Desktop populates it with
+    # symlinks into /Applications/Docker.app; after Desktop is removed (this role
+    # deliberately avoids it) those links dangle and a same-named entry there
+    # (docker-buildx, docker-compose, ...) shadows or breaks the Homebrew plugin,
+    # so `docker buildx` shows up as "not a docker command". Prune the broken
+    # links so the Homebrew plugins in cliPluginsExtraDirs resolve. Valid links
+    # (e.g. one already pointing at a Homebrew binary) are left untouched.
+    - name: Find symlinks in the user Docker CLI plugins dir
+      ansible.builtin.find:
+        paths: "{{ ansible_facts['env'].HOME }}/.docker/cli-plugins"
+        file_type: link
+      register: docker_user_plugin_links
+
+    - name: Resolve each plugin symlink target
+      ansible.builtin.stat:
+        path: "{{ item.path }}"
+        follow: true
+      loop: "{{ docker_user_plugin_links.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+      register: docker_user_plugin_targets
+
+    - name: Remove stale/broken Docker CLI plugin symlinks (e.g. uninstalled Docker Desktop)
+      ansible.builtin.file:
+        path: "{{ item.item.path }}"
+        state: absent
+      loop: "{{ docker_user_plugin_targets.results }}"
+      loop_control:
+        label: "{{ item.item.path | basename }}"
+      when: not item.stat.exists
 
     - name: Ensure the user LaunchAgents directory exists
       ansible.builtin.file:

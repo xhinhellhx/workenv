@@ -9,6 +9,11 @@ docker_brew_formulae:
   - docker-compose
   - docker-buildx
   - colima
+  # Without Docker Desktop nothing ships docker-credential-osxkeychain, so
+  # `docker login` would persist base64 plaintext creds in config.json. This
+  # formula installs docker-credential-osxkeychain (the helper for
+  # docker_creds_store below).
+  - docker-credential-helper
 
 # macOS: directory registered in ~/.docker/config.json's cliPluginsExtraDirs so
 # the docker CLI discovers Homebrew-installed plugins (`docker compose`,
@@ -16,6 +21,12 @@ docker_brew_formulae:
 # here. On Linux the get.docker.com script installs the equivalent *-plugin
 # packages system-wide, so this is macOS-only.
 docker_cli_plugins_dir: "{{ homebrew_prefix }}/lib/docker/cli-plugins"
+
+# macOS: credential store written to ~/.docker/config.json's `credsStore`. With
+# "osxkeychain" the docker CLI stores registry credentials in the macOS Keychain
+# (via docker-credential-osxkeychain) instead of base64-encoded in config.json.
+# Requires the docker-credential-helper formula above to be on PATH.
+docker_creds_store: "osxkeychain"
 
 # Linux: users added to the `docker` group (to run docker without sudo).
 docker_users:
