@@ -15,7 +15,11 @@ docker_brew_formulae:
 # `docker buildx`, ...). Every Homebrew docker plugin formula drops its binary
 # here. On Linux the get.docker.com script installs the equivalent *-plugin
 # packages system-wide, so this is macOS-only.
-docker_cli_plugins_dir: "{{ homebrew_prefix }}/lib/docker/cli-plugins"
+# homebrew_prefix comes from the homebrew role, a macOS-only dependency, so it is
+# undefined when this default is templated outside a macOS run (e.g. ansible-lint
+# static analysis). Fall back to Homebrew's own non-arm64 default so the value is
+# always resolvable; on a real macOS run the dependency supplies the real prefix.
+docker_cli_plugins_dir: "{{ homebrew_prefix | default('/usr/local') }}/lib/docker/cli-plugins"
 
 # Linux: users added to the `docker` group (to run docker without sudo).
 docker_users:
