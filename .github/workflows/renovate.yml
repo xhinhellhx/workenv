@@ -1,0 +1,43 @@
+name: renovate
+
+# Self-hosted Renovate run: checks every pinned dependency (role version vars,
+# pre-commit hooks, Galaxy collections, GitHub Actions) for updates and opens a
+# single grouped PR per the rules in renovate.json.
+#
+# Setup required once: add a repo/org secret named RENOVATE_TOKEN containing a
+# GitHub PAT (classic: repo + workflow scopes, or a fine-grained token with
+# contents/pull-requests write) that Renovate uses to push branches and open PRs.
+on:
+  schedule:
+    # Weekly, Monday 03:00 UTC. renovate.json narrows pushes to this window too.
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Renovate log level"
+        required: false
+        default: "info"
+        type: choice
+        options: [debug, info, warn]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v41.0.0
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
