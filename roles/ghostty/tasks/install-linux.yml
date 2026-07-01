@@ -124,6 +124,43 @@
     state: present
   become: true
 
+# --- Desktop integration: XDG_DATA_DIRS for snap apps (RHEL family) -----------
+# snapd installs every snap's .desktop entry under /var/lib/snapd/desktop, which
+# must be on XDG_DATA_DIRS for the entry to show in GNOME and resolve via
+# gtk-launch. snapd only adds it through /etc/profile.d/snapd.sh, which login
+# shells source but the GNOME/Wayland session under GDM does not, so on the RHEL
+# family (which lacks Ubuntu's snapd session integration) Ghostty is missing from
+# the app grid and `gtk-launch ghostty_ghostty` fails with "no such application".
+# Inject it into the systemd --user environment instead, which both Wayland and X
+# sessions inherit. A generator (rather than a static environment.d drop-in) lets
+# us append only when missing and preserve any existing XDG_DATA_DIRS, e.g.
+# Flatpak's exports, instead of clobbering it. Takes effect on the next login.
+- name: Ensure the systemd user-environment-generators directory exists (RHEL family)
+  ansible.builtin.file:
+    path: "{{ ghostty_user_env_generator | dirname }}"
+    state: directory
+    mode: "0755"
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
+- name: Add snapd's desktop dir to XDG_DATA_DIRS for the user session (RHEL family)
+  ansible.builtin.copy:
+    dest: "{{ ghostty_user_env_generator }}"
+    mode: "0755"
+    content: |
+      #!/bin/sh
+      # Managed by the workenv ghostty role.
+      # Ensure snapd's desktop directory is on XDG_DATA_DIRS so snap .desktop
+      # entries (e.g. Ghostty) appear in GNOME and resolve via gtk-launch.
+      base="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+      case ":${base}:" in
+        *:{{ ghostty_snap_desktop_dir }}:*) ;;
+        *) base="${base}:{{ ghostty_snap_desktop_dir }}" ;;
+      esac
+      printf 'XDG_DATA_DIRS=%s\n' "${base}"
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
 # snap exposes the launcher at /snap/bin/ghostty (added to PATH via
 # /etc/profile.d/snapd.sh). Put a stable launcher at ghostty_bin so `ghostty`
 # works from any shell immediately, without depending on /snap/bin being on the

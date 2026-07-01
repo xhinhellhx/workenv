@@ -22,7 +22,17 @@ ghostty_opengl_packages:
     - mesa-libGL
     - mesa-dri-drivers
 
+# Directory under which snapd installs the .desktop entries for every snap. It
+# must be on XDG_DATA_DIRS for snap apps to appear in GNOME / resolve via
+# gtk-launch (see the user-environment generator in install-linux.yml).
+ghostty_snap_desktop_dir: "/var/lib/snapd/desktop"
+
 # Desktop entry snapd generates for the Ghostty snap. The app-grid icon launches
 # from here, so when software OpenGL is forced the role overrides this entry's
 # Exec to route through the ghostty_bin wrapper (see tasks/install-linux.yml).
-ghostty_snap_desktop_file: "/var/lib/snapd/desktop/applications/ghostty_ghostty.desktop"
+ghostty_snap_desktop_file: "{{ ghostty_snap_desktop_dir }}/applications/ghostty_ghostty.desktop"
+
+# systemd user-environment generator that puts snapd's desktop dir on
+# XDG_DATA_DIRS for the graphical session. Installed only on the RHEL family,
+# which lacks Ubuntu's snapd session integration (see install-linux.yml).
+ghostty_user_env_generator: "/etc/systemd/user-environment-generators/90-snapd-xdg-data-dirs"
