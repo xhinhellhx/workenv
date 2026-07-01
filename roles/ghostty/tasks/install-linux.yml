@@ -102,20 +102,105 @@
   when: ghostty_build_required
   changed_when: true
 
+# --- Ensure the installed binary is runnable ----------------------------------
+# On RHEL a freshly placed binary can carry the wrong SELinux file context,
+# making exec fail with "Permission denied" — which looks like a non-executable
+# binary. Fix the mode and restore the default context.
+- name: Stat the installed Ghostty binary
+  ansible.builtin.stat:
+    path: "{{ ghostty_install_prefix }}/bin/ghostty"
+  register: ghostty_binary
+
+- name: Ensure the Ghostty binary is executable
+  ansible.builtin.file:
+    path: "{{ ghostty_install_prefix }}/bin/ghostty"
+    mode: "0755"
+  become: true
+  when: ghostty_binary.stat.exists
+
+- name: Restore the SELinux context on the Ghostty binary (RHEL family)
+  ansible.builtin.command:
+    cmd: "restorecon -v {{ ghostty_install_prefix }}/bin/ghostty"
+  become: true
+  register: ghostty_restorecon
+  changed_when: ghostty_restorecon.stdout | length > 0
+  failed_when: false
+  when:
+    - ghostty_binary.stat.exists
+    - ansible_facts['os_family'] == "RedHat"
+
 # --- Desktop integration ------------------------------------------------------
-# The build installs com.mitchellh.ghostty.desktop and the application icons
-# under {{ ghostty_install_prefix }}/share, but the launcher only sees them once
-# the desktop and icon caches are rebuilt.
+# Ghostty's build is meant to drop com.mitchellh.ghostty.desktop and icons under
+# {{ ghostty_install_prefix }}/share, but that doesn't happen reliably on every
+# distro, and /usr/local/share is not always in the session's XDG_DATA_DIRS — so
+# the launcher may never scan it. Install our own entry into /usr/share, which
+# is always scanned, pointing at the real binary. This makes Ghostty reliably
+# visible regardless of what the build emitted.
+- name: Install a Ghostty desktop entry (always-scanned location)
+  ansible.builtin.copy:
+    dest: /usr/share/applications/com.mitchellh.ghostty.desktop
+    mode: "0644"
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=Ghostty
+      GenericName=Terminal
+      Comment=Fast, native, feature-rich terminal emulator
+      Exec={{ ghostty_install_prefix }}/bin/ghostty
+      Icon=com.mitchellh.ghostty
+      Terminal=false
+      Categories=System;TerminalEmulator;
+      Keywords=terminal;tty;pty;
+      StartupNotify=true
+      StartupWMClass=com.mitchellh.ghostty
+      Actions=new-window
+
+      [Desktop Action new-window]
+      Name=New Window
+      Exec={{ ghostty_install_prefix }}/bin/ghostty
+  become: true
+
+# Mirror any icons the build installed under the prefix into /usr/share/icons so
+# they resolve even when /usr/local/share is outside XDG_DATA_DIRS. Best effort:
+# does nothing if the build produced no icons.
+- name: Find Ghostty icons installed by the build
+  ansible.builtin.find:
+    paths: "{{ ghostty_install_prefix }}/share/icons/hicolor"
+    patterns: "com.mitchellh.ghostty.*"
+    recurse: true
+  register: ghostty_icons
+
+- name: Mirror Ghostty icons into /usr/share/icons/hicolor
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ item.path | replace(ghostty_install_prefix ~ '/share/icons', '/usr/share/icons') }}"
+    remote_src: true
+    mode: "0644"
+  become: true
+  loop: "{{ ghostty_icons.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+# Reset the desktop entry and mirrored icons to their policy-default SELinux
+# contexts (RHEL family). Data files read by the launcher, so usually correct
+# already — cheap insurance against an unexpected label from the copy.
+- name: Restore SELinux contexts on the desktop entry and icons (RHEL family)
+  ansible.builtin.command:
+    cmd: "restorecon -Rv /usr/share/applications/com.mitchellh.ghostty.desktop /usr/share/icons/hicolor"
+  become: true
+  register: ghostty_desktop_restorecon
+  changed_when: ghostty_desktop_restorecon.stdout | length > 0
+  failed_when: false
+  when: ansible_facts['os_family'] == "RedHat"
+
 - name: Refresh the desktop application database
   ansible.builtin.command:
-    cmd: "update-desktop-database {{ ghostty_install_prefix }}/share/applications"
+    cmd: "update-desktop-database /usr/share/applications"
   become: true
-  when: ghostty_build_required
   changed_when: true
 
 - name: Refresh the hicolor icon cache
   ansible.builtin.command:
-    cmd: "gtk-update-icon-cache --force --ignore-theme-index {{ ghostty_install_prefix }}/share/icons/hicolor"
+    cmd: "gtk-update-icon-cache --force --ignore-theme-index /usr/share/icons/hicolor"
   become: true
-  when: ghostty_build_required
   changed_when: true
