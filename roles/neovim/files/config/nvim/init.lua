@@ -118,6 +118,50 @@ require('lazy').setup({
       on_colors = function(_colors)
         return { base03 = '#001e27' }
       end,
+      -- Solarized renders most tokens in the base foreground, which looks flat.
+      -- Remap the treesitter capture groups to distinct accents so functions,
+      -- keywords, types, strings, etc. each get their own colour. `colors.*`
+      -- resolves against the active palette, so this stays internally consistent.
+      on_highlights = function(colors, _color)
+        return {
+          -- functions / methods
+          ['@function']            = { fg = colors.blue,    bold = true },
+          ['@function.call']       = { fg = colors.blue },
+          ['@function.builtin']    = { fg = colors.cyan },
+          ['@function.method']     = { fg = colors.blue },
+          ['@constructor']         = { fg = colors.yellow },
+
+          -- keywords / control flow
+          ['@keyword']             = { fg = colors.green,   bold = true },
+          ['@keyword.function']    = { fg = colors.green,   bold = true },
+          ['@keyword.return']      = { fg = colors.magenta, bold = true },
+          ['@conditional']         = { fg = colors.green },
+          ['@repeat']              = { fg = colors.green },
+          ['@operator']            = { fg = colors.orange },
+
+          -- types
+          ['@type']                = { fg = colors.yellow },
+          ['@type.builtin']        = { fg = colors.yellow,  bold = true },
+
+          -- strings / numbers / constants
+          ['@string']              = { fg = colors.cyan },
+          ['@string.escape']       = { fg = colors.orange },
+          ['@number']              = { fg = colors.magenta },
+          ['@boolean']             = { fg = colors.magenta },
+          ['@constant']            = { fg = colors.violet },
+          ['@constant.builtin']    = { fg = colors.violet,  bold = true },
+
+          -- variables / properties / params
+          ['@variable']            = { fg = colors.base0 },
+          ['@variable.member']     = { fg = colors.blue },   -- struct/obj fields
+          ['@property']            = { fg = colors.blue },
+          ['@parameter']           = { fg = colors.orange },
+
+          -- punctuation / comments
+          ['@punctuation.bracket'] = { fg = colors.base1 },
+          ['@comment']             = { fg = colors.base01, italic = true },
+        }
+      end,
     },
     config   = function(_, opts)
       require('solarized').setup(opts)
