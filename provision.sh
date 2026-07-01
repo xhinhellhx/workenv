@@ -71,6 +71,7 @@ COMMON_ROLES=(
 	shellcheck
 	shfmt
 	hadolint
+	dockerfmt
 	dockle
 	trivy
 	gitleaks

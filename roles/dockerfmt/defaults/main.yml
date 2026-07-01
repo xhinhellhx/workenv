@@ -1,0 +1,10 @@
+---
+# Default variables for the dockerfmt role.
+
+# renovate: datasource=github-releases depName=reteps/dockerfmt extractVersion=^v(?<version>.+)$
+dockerfmt_version: "0.5.2"
+dockerfmt_install_dir: "/usr/local/bin"
+dockerfmt_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
+dockerfmt_archive: "dockerfmt-v{{ dockerfmt_version }}-linux-{{ dockerfmt_arch }}.tar.gz"
+dockerfmt_repo: "https://github.com/reteps/dockerfmt"
+dockerfmt_download_url: "{{ dockerfmt_repo }}/releases/download/v{{ dockerfmt_version }}/{{ dockerfmt_archive }}"

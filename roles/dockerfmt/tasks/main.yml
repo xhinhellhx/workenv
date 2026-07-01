@@ -1,0 +1,34 @@
+---
+# Install dockerfmt (a Dockerfile formatter).
+#   - macOS: Homebrew (dockerfmt is in homebrew-core; Homebrew ensured by the
+#     `homebrew` role dependency)
+#   - Linux: official release tarball -> /usr/local/bin
+
+- name: Install dockerfmt (macOS, Homebrew)
+  community.general.homebrew:
+    name: dockerfmt
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install dockerfmt (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed dockerfmt version
+      ansible.builtin.command: "{{ dockerfmt_install_dir }}/dockerfmt version"
+      register: dockerfmt_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Download and extract the dockerfmt binary, version {{ dockerfmt_version }}
+      ansible.builtin.unarchive:
+        src: "{{ dockerfmt_download_url }}"
+        dest: "{{ dockerfmt_install_dir }}"
+        remote_src: true
+        include:
+          - dockerfmt
+        mode: "0755"
+        owner: root
+        group: root
+      become: true
+      when: dockerfmt_version not in dockerfmt_installed.stdout

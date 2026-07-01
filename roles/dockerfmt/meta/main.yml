@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: dockerfmt
+  author: xhinhellhx
+  description: Installs dockerfmt (a Dockerfile formatter)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew
+    when: ansible_facts['system'] == "Darwin"
