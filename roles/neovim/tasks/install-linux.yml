@@ -105,3 +105,19 @@
   become: true
   when: neovim_build_required
   changed_when: true
+
+# `make install` runs as root and CMake's install(DIRECTORY ...) creates the
+# destination dirs honouring root's umask. On hosts with a hardened umask (077,
+# common on Fedora/RHEL under sudo) the runtime lands as 0700 root:root, so a
+# normal user cannot read it: nvim then fails to find a valid runtime, falls back
+# to $VIM and dies at startup with "module 'vim.uri' not found" / "Can't open
+# file .../syntax/syntax.vim". CMake gives the binary an explicit 0755, so nvim
+# still launches, which masks the problem until the runtime is loaded. Normalize
+# the installed tree to a+rX (read for all, traverse on dirs) so the runtime is
+# world-readable regardless of the umask in effect during the build.
+- name: Ensure the installed Neovim tree is world-readable
+  ansible.builtin.command:
+    cmd: chmod -R a+rX {{ neovim_install_prefix }}/share/nvim
+  become: true
+  when: neovim_build_required
+  changed_when: true
