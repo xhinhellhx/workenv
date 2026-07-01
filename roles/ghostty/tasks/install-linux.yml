@@ -1,158 +1,119 @@
 ---
-# Build and install Ghostty from source on Linux.
-# Supports Debian/Ubuntu and the RHEL family (RHEL/Rocky/Alma/Fedora).
+# Install Ghostty on Linux from the pkgforge-dev AppImage.
+# The AppImage is self-contained (bundles its own GTK4/libadwaita), so it runs
+# cleanly even where the system GTK is too old to build/run Ghostty from source
+# (e.g. RHEL). Identical path for Debian/Ubuntu and the RHEL family.
 
-- name: Install build dependencies (Debian/Ubuntu)
+- name: Fail on unsupported Linux distribution
+  ansible.builtin.fail:
+    msg: >-
+      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The ghostty role
+      installs the AppImage only on Debian/Ubuntu and RHEL-family systems.
+  when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
+
+# --- Desktop-integration tooling ---------------------------------------------
+# Only the launcher-registration helpers; the AppImage carries everything else.
+- name: Install desktop-integration tools (Debian/Ubuntu)
   ansible.builtin.apt:
-    name: "{{ ghostty_build_deps_debian }}"
+    name: "{{ ghostty_desktop_deps_debian }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
   become: true
   when: ansible_facts['os_family'] == "Debian"
 
-- name: Enable EPEL repository (RHEL family, excluding Fedora)
+- name: Install desktop-integration tools (RHEL family)
   ansible.builtin.dnf:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_facts['distribution_major_version'] }}.noarch.rpm"
-    state: present
-    disable_gpg_check: true
-  become: true
-  when:
-    - ansible_facts['os_family'] == "RedHat"
-    - ansible_facts['distribution'] != "Fedora"
-
-- name: Install build dependencies (RHEL family)
-  ansible.builtin.dnf:
-    name: "{{ ghostty_build_deps_redhat }}"
+    name: "{{ ghostty_desktop_deps_redhat }}"
     state: present
   become: true
   when: ansible_facts['os_family'] == "RedHat"
 
-- name: Fail on unsupported Linux distribution
-  ansible.builtin.fail:
-    msg: >-
-      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The ghostty role builds
-      from source only on Debian/Ubuntu and RHEL-family systems.
-  when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
-
-# --- Zig toolchain ------------------------------------------------------------
-- name: Check installed Zig version
-  ansible.builtin.command: "{{ ghostty_zig_dir }}/zig version"
-  register: zig_installed
-  changed_when: false
-  failed_when: false
-
-- name: Ensure Zig install directory exists
+# --- Download + extract the AppImage -----------------------------------------
+- name: Ensure the Ghostty AppImage directory exists
   ansible.builtin.file:
-    path: "{{ ghostty_zig_dir }}"
+    path: "{{ ghostty_appimage_dir }}"
     state: directory
     mode: "0755"
   become: true
-  when: zig_installed.stdout != ghostty_zig_version
 
-- name: Download and extract Zig {{ ghostty_zig_version }}
-  ansible.builtin.unarchive:
-    src: "{{ ghostty_zig_url }}"
-    dest: "{{ ghostty_zig_dir }}"
-    remote_src: true
-    extra_opts:
-      - "--strip-components=1"
-  become: true
-  when: zig_installed.stdout != ghostty_zig_version
-
-- name: Symlink zig into PATH
-  ansible.builtin.file:
-    src: "{{ ghostty_zig_dir }}/zig"
-    dest: "/usr/local/bin/zig"
-    state: link
-  become: true
-
-# --- Ghostty build ------------------------------------------------------------
-- name: Check currently installed Ghostty version
-  ansible.builtin.command: "{{ ghostty_install_prefix }}/bin/ghostty --version"
-  register: ghostty_installed
-  changed_when: false
-  failed_when: false
-
-- name: Clone Ghostty source at {{ ghostty_version }}
-  ansible.builtin.git:
-    repo: https://github.com/ghostty-org/ghostty.git
-    dest: "{{ ghostty_build_dir }}"
-    version: "{{ ghostty_version }}"
-    depth: 1
-    force: true
-  become: true
-  register: ghostty_source
-
-- name: Determine whether a (re)build is required
-  ansible.builtin.set_fact:
-    ghostty_build_required: >-
-      {{ ghostty_source.changed
-         or ghostty_installed.rc != 0
-         or (ghostty_version | regex_replace('^v', '')) not in ghostty_installed.stdout }}
-
-- name: Build and install Ghostty ({{ ghostty_optimize }})
-  ansible.builtin.command:
-    cmd: >-
-      {{ ghostty_zig_dir }}/zig build
-      -Doptimize={{ ghostty_optimize }}
-      -p {{ ghostty_install_prefix }}
-    chdir: "{{ ghostty_build_dir }}"
-  become: true
-  when: ghostty_build_required
-  changed_when: true
-
-# --- Ensure the installed binary is runnable ----------------------------------
-# On RHEL a freshly placed binary can carry the wrong SELinux file context,
-# making exec fail with "Permission denied" — which looks like a non-executable
-# binary. Fix the mode and restore the default context.
-- name: Stat the installed Ghostty binary
-  ansible.builtin.stat:
-    path: "{{ ghostty_install_prefix }}/bin/ghostty"
-  register: ghostty_binary
-
-- name: Ensure the Ghostty binary is executable
-  ansible.builtin.file:
-    path: "{{ ghostty_install_prefix }}/bin/ghostty"
+- name: Download the Ghostty AppImage {{ ghostty_version }}
+  ansible.builtin.get_url:
+    url: "{{ ghostty_appimage_url }}"
+    dest: "{{ ghostty_appimage_dir }}/{{ ghostty_appimage_filename }}"
     mode: "0755"
   become: true
-  when: ghostty_binary.stat.exists
+  register: ghostty_appimage_download
 
-# A partial `zig build` (e.g. missing gtk4/libadwaita/blueprint-compiler on
-# RHEL) can fail to emit the binary while still leaving the play "successful".
-# The desktop entry below would then point at a non-existent Exec, which GNOME
-# silently hides — looking exactly like "installed but not in my applications".
-# Fail loudly here instead so the real cause (the build) is obvious.
-- name: Fail clearly if the build did not produce a Ghostty binary
+# Extract rather than run via FUSE: deterministic on minimal/headless hosts
+# (no fusermount needed) and faster to launch. `--appimage-extract` is handled
+# by the AppImage's own runtime and needs no system FUSE.
+# Not a handler: later tasks in this file (stat AppRun, symlink onto PATH, icon
+# mirroring) consume the extracted tree, so it must be extracted inline before
+# them — handlers run at the end of the play, too late for those dependencies.
+- name: (Re)extract the AppImage when it changed  # noqa: no-handler
+  when: ghostty_appimage_download is changed
+  become: true
+  block:
+    - name: Remove any previous extraction
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ghostty_appimage_dir }}/squashfs-root"
+        - "{{ ghostty_appimage_dir }}/AppDir"
+
+    - name: Extract the AppImage
+      ansible.builtin.command:
+        cmd: "./{{ ghostty_appimage_filename }} --appimage-extract"
+        chdir: "{{ ghostty_appimage_dir }}"
+      changed_when: true
+
+    - name: Move the extracted tree into AppDir
+      ansible.builtin.command:
+        cmd: "mv {{ ghostty_appimage_dir }}/squashfs-root {{ ghostty_appimage_dir }}/AppDir"
+      changed_when: true
+
+- name: Stat the extracted AppRun launcher
+  ansible.builtin.stat:
+    path: "{{ ghostty_appimage_dir }}/AppDir/AppRun"
+  register: ghostty_apprun
+
+- name: Fail clearly if the AppImage did not extract a runnable AppRun
   ansible.builtin.assert:
     that:
-      - ghostty_binary.stat.exists
+      - ghostty_apprun.stat.exists
     fail_msg: >-
-      No binary at {{ ghostty_install_prefix }}/bin/ghostty — the `zig build`
-      step did not install Ghostty, so there is nothing for the desktop entry to
-      launch. Re-run with -vvv and check the build output; on RHEL this is
-      usually a missing build dependency (gtk4-devel, libadwaita-devel,
-      blueprint-compiler) or a Zig/Ghostty version mismatch.
-    success_msg: "Ghostty binary present at {{ ghostty_install_prefix }}/bin/ghostty."
+      No AppRun at {{ ghostty_appimage_dir }}/AppDir/AppRun — the AppImage did
+      not extract. Check the download URL ({{ ghostty_appimage_url }}) and that
+      the architecture asset exists for this release.
+    success_msg: "Ghostty AppImage extracted at {{ ghostty_appimage_dir }}/AppDir."
 
-- name: Restore the SELinux context on the Ghostty binary (RHEL family)
+- name: Symlink the Ghostty launcher onto PATH
+  ansible.builtin.file:
+    src: "{{ ghostty_appimage_dir }}/AppDir/AppRun"
+    dest: "{{ ghostty_bin }}"
+    state: link
+    force: true
+  become: true
+
+# On RHEL the extracted tree under /opt can carry a non-default SELinux context,
+# which can deny executing AppRun or loading the bundled libraries. Restore the
+# policy-default contexts on the whole tree.
+- name: Restore SELinux contexts on the extracted AppImage (RHEL family)
   ansible.builtin.command:
-    cmd: "restorecon -v {{ ghostty_install_prefix }}/bin/ghostty"
+    cmd: "restorecon -Rv {{ ghostty_appimage_dir }}"
   become: true
   register: ghostty_restorecon
   changed_when: ghostty_restorecon.stdout | length > 0
   failed_when: false
-  when:
-    - ghostty_binary.stat.exists
-    - ansible_facts['os_family'] == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat"
 
 # --- Desktop integration ------------------------------------------------------
-# Ghostty's build is meant to drop com.mitchellh.ghostty.desktop and icons under
-# {{ ghostty_install_prefix }}/share, but that doesn't happen reliably on every
-# distro, and /usr/local/share is not always in the session's XDG_DATA_DIRS — so
-# the launcher may never scan it. Install our own entry into /usr/share, which
-# is always scanned, pointing at the real binary. This makes Ghostty reliably
-# visible regardless of what the build emitted.
+# AppImages do not register themselves with the launcher. Install our own entry
+# into /usr/share (always scanned) with an absolute Exec — GNOME hides entries
+# whose Exec is relative or not on the desktop environment's PATH, and the
+# AppImage's bundled .desktop uses a relative `Exec=ghostty`.
 - name: Install a Ghostty desktop entry (always-scanned location)
   ansible.builtin.copy:
     dest: /usr/share/applications/com.mitchellh.ghostty.desktop
@@ -163,7 +124,7 @@
       Name=Ghostty
       GenericName=Terminal
       Comment=Fast, native, feature-rich terminal emulator
-      Exec={{ ghostty_install_prefix }}/bin/ghostty
+      Exec={{ ghostty_bin }}
       Icon=com.mitchellh.ghostty
       Terminal=false
       Categories=System;TerminalEmulator;
@@ -174,12 +135,11 @@
 
       [Desktop Action new-window]
       Name=New Window
-      Exec={{ ghostty_install_prefix }}/bin/ghostty
+      Exec={{ ghostty_bin }}
   become: true
 
-# GNOME silently ignores an entry that fails validation, which also reads as
-# "installed but not visible". Surface any error at provision time. Warnings are
-# tolerated (rc 0); only hard errors (rc != 0) fail the build.
+# GNOME silently ignores an entry that fails validation, which reads as
+# "installed but not visible". Surface any hard error at provision time.
 - name: Validate the installed Ghostty desktop entry
   ansible.builtin.command:
     cmd: desktop-file-validate /usr/share/applications/com.mitchellh.ghostty.desktop
@@ -188,12 +148,12 @@
   register: ghostty_desktop_validate
   failed_when: ghostty_desktop_validate.rc != 0
 
-# Mirror any icons the build installed under the prefix into /usr/share/icons so
-# they resolve even when /usr/local/share is outside XDG_DATA_DIRS. Best effort:
-# does nothing if the build produced no icons.
-- name: Find Ghostty icons installed by the build
+# Mirror the icons bundled inside the AppImage into /usr/share/icons so the
+# launcher resolves Icon=com.mitchellh.ghostty (the hicolor theme is the
+# always-scanned freedesktop fallback).
+- name: Find Ghostty icons inside the extracted AppImage
   ansible.builtin.find:
-    paths: "{{ ghostty_install_prefix }}/share/icons/hicolor"
+    paths: "{{ ghostty_appimage_dir }}/AppDir/usr/share/icons/hicolor"
     patterns: "com.mitchellh.ghostty.*"
     recurse: true
   register: ghostty_icons
@@ -201,7 +161,7 @@
 - name: Mirror Ghostty icons into /usr/share/icons/hicolor
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ item.path | replace(ghostty_install_prefix ~ '/share/icons', '/usr/share/icons') }}"
+    dest: "{{ item.path | replace(ghostty_appimage_dir ~ '/AppDir/usr/share/icons', '/usr/share/icons') }}"
     remote_src: true
     mode: "0644"
   become: true
@@ -209,9 +169,6 @@
   loop_control:
     label: "{{ item.path | basename }}"
 
-# Reset the desktop entry and mirrored icons to their policy-default SELinux
-# contexts (RHEL family). Data files read by the launcher, so usually correct
-# already — cheap insurance against an unexpected label from the copy.
 - name: Restore SELinux contexts on the desktop entry and icons (RHEL family)
   ansible.builtin.command:
     cmd: "restorecon -Rv /usr/share/applications/com.mitchellh.ghostty.desktop /usr/share/icons/hicolor"
@@ -227,8 +184,11 @@
   become: true
   changed_when: true
 
+# Best-effort: the launcher still resolves icons without a warm cache, so do not
+# fail the run if gtk-update-icon-cache is unavailable.
 - name: Refresh the hicolor icon cache
   ansible.builtin.command:
     cmd: "gtk-update-icon-cache --force --ignore-theme-index /usr/share/icons/hicolor"
   become: true
   changed_when: true
+  failed_when: false

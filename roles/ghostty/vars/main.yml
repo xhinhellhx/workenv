@@ -1,33 +1,17 @@
 ---
 # Internal role variables (not intended to be overridden).
 
-# Build dependencies for compiling Ghostty from source.
-# https://ghostty.org/docs/install/build
-
-ghostty_build_deps_debian:
-  - build-essential
-  - git
-  - pkg-config
-  - libgtk-4-dev
-  - libadwaita-1-dev
-  - blueprint-compiler
-  - gettext
-  - libxml2-utils
-  # Provides update-desktop-database / gtk-update-icon-cache so the freshly
-  # installed .desktop file and icons show up in the application launcher.
+# Host packages needed only to register the AppImage with the desktop launcher.
+# The AppImage itself bundles all of Ghostty's runtime libraries (GTK4,
+# libadwaita, ...), so no build toolchain or -devel packages are required.
+ghostty_desktop_deps_debian:
+  # update-desktop-database / desktop-file-validate
   - desktop-file-utils
+  # gtk-update-icon-cache
   - libgtk-4-bin
 
-ghostty_build_deps_redhat:
-  - gcc
-  - git
-  - pkgconf-pkg-config
-  - gtk4-devel
-  - libadwaita-devel
-  - blueprint-compiler
-  - gettext
-  - libxml2
-  # Provides update-desktop-database / gtk-update-icon-cache so the freshly
-  # installed .desktop file and icons show up in the application launcher.
+ghostty_desktop_deps_redhat:
+  # update-desktop-database / desktop-file-validate
   - desktop-file-utils
+  # gtk-update-icon-cache (present on any GTK desktop; best-effort otherwise)
   - gtk4

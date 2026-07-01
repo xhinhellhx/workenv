@@ -5,29 +5,35 @@ Installs the [Ghostty](https://ghostty.org) terminal emulator.
 | Platform        | Method                                                      |
 | --------------- | ----------------------------------------------------------- |
 | macOS           | Homebrew cask (`ghostty_brew_cask`)                         |
-| Debian / Ubuntu | Build from source with Zig at the pinned tag               |
-| RHEL family     | Build from source with Zig at the pinned tag               |
+| Debian / Ubuntu | Self-contained AppImage (pkgforge-dev), extracted to `/opt` |
+| RHEL family     | Self-contained AppImage (pkgforge-dev), extracted to `/opt` |
 
-On Linux the role installs all build dependencies (GTK4, libadwaita,
-blueprint-compiler, …), provisions the required Zig toolchain, clones the
-Ghostty source at `ghostty_version`, and rebuilds only when the installed
-version differs (idempotent). After a build it refreshes the desktop
-application and icon caches (`update-desktop-database` / `gtk-update-icon-cache`)
-so Ghostty appears in the application launcher. Homebrew is ensured by the
-`homebrew` role dependency.
+On Linux the role downloads the [pkgforge-dev AppImage](https://github.com/pkgforge-dev/ghostty-appimage)
+at `ghostty_version`, extracts it under `ghostty_appimage_dir` (no system FUSE
+needed), and symlinks `AppRun` to `ghostty_bin` on PATH. The AppImage bundles
+its own GTK4/libadwaita, so it runs cleanly where the **system GTK is too old to
+build/run Ghostty from source** (notably RHEL, where a source build hits GTK
+theme-parser and GDK `color-mgmt` errors). Because AppImages do not register
+themselves, the role installs a desktop entry into `/usr/share/applications`
+with an **absolute `Exec`** (GNOME hides relative-Exec entries), mirrors the
+bundled icons into `/usr/share/icons/hicolor`, restores SELinux contexts on
+RHEL, and refreshes the desktop/icon caches so Ghostty appears in the launcher.
+Homebrew is ensured by the `homebrew` role dependency.
+
+> The AppImage is published by the unofficial pkgforge-dev project, not the
+> Ghostty team. On a GNOME/Wayland session a fresh entry may only appear after a
+> log out / log in.
 
 ## Variables
 
 | Variable                  | Default            | Description                                   |
 | ------------------------- | ------------------ | --------------------------------------------- |
 | `ghostty_brew_cask`       | `ghostty`          | Homebrew cask name (macOS).                   |
-| `ghostty_version`         | `v1.1.3`           | Git tag built from source (Linux).            |
-| `ghostty_build_dir`       | `/usr/local/src/ghostty` | Source clone / build directory.         |
-| `ghostty_install_prefix`  | `/usr/local`       | Install prefix (`<prefix>/bin/ghostty`).      |
-| `ghostty_optimize`        | `ReleaseFast`      | Zig optimisation mode.                        |
-| `ghostty_zig_version`     | `0.13.0`           | Zig toolchain version (v1.1.3 → 0.13.0).      |
-| `ghostty_zig_dir`         | `/opt/zig`         | Where the Zig toolchain is installed.         |
-| `ghostty_zig_url`         | ziglang.org URL    | Zig tarball download URL.                     |
+| `ghostty_version`         | `1.3.1`            | AppImage release version (Linux).             |
+| `ghostty_appimage_arch`   | derived            | `x86_64` or `aarch64` from the host arch.     |
+| `ghostty_appimage_url`    | pkgforge-dev URL   | AppImage download URL.                         |
+| `ghostty_appimage_dir`    | `/opt/ghostty`     | Download + extraction directory.              |
+| `ghostty_bin`             | `/usr/local/bin/ghostty` | Launcher symlink on PATH (desktop `Exec`). |
 
 ## Configuration
 
@@ -44,9 +50,9 @@ on both macOS and Linux). Current settings:
 ## Layout
 
 - `tasks/install-macos.yml` — Homebrew cask install.
-- `tasks/install-linux.yml` — build deps, Zig toolchain, source build, desktop/icon cache refresh.
+- `tasks/install-linux.yml` — AppImage download + extraction, launcher symlink, desktop entry, icon mirror, SELinux, cache refresh.
 - `tasks/config.yml` — deploys the config file and bundled themes.
-- `vars/main.yml` — per-distro build dependency lists.
+- `vars/main.yml` — per-distro desktop-integration package lists.
 - `files/config/ghostty/config` — the deployed Ghostty config.
 - `files/config/ghostty/themes/` — bundled theme files (e.g. `Solarized Dark
   Patched`) deployed to `~/.config/ghostty/themes/`, so the theme resolves
