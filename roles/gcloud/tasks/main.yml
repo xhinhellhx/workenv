@@ -1,0 +1,63 @@
+---
+# Install the Google Cloud CLI (gcloud).
+#   - macOS: Homebrew cask (Homebrew ensured by the `homebrew` role dependency)
+#   - Debian/Ubuntu: official apt repo
+#   - RHEL family: official yum repo
+
+- name: Install Google Cloud SDK (macOS, Homebrew cask)
+  community.general.homebrew_cask:
+    name: "{{ gcloud_brew_cask }}"
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install Google Cloud CLI (Debian/Ubuntu)
+  when: ansible_os_family == "Debian"
+  become: true
+  block:
+    - name: Install apt prerequisites
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - curl
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Add the Google Cloud apt signing key
+      ansible.builtin.shell:
+        cmd: "curl -fsSL {{ gcloud_apt_key_url }} | gpg --dearmor -o {{ gcloud_apt_keyring }}"
+        creates: "{{ gcloud_apt_keyring }}"
+
+    - name: Add the Google Cloud apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by={{ gcloud_apt_keyring }}] {{ gcloud_apt_repo }} cloud-sdk main"
+        filename: google-cloud-sdk
+        state: present
+
+    - name: Install the google-cloud-cli package
+      ansible.builtin.apt:
+        name: "{{ gcloud_package }}"
+        state: present
+        update_cache: true
+
+- name: Install Google Cloud CLI (RHEL family)
+  when: ansible_os_family == "RedHat"
+  become: true
+  block:
+    - name: Add the Google Cloud yum repository
+      ansible.builtin.yum_repository:
+        name: google-cloud-cli
+        description: Google Cloud CLI
+        baseurl: "{{ gcloud_yum_baseurl }}"
+        enabled: true
+        gpgcheck: true
+        repo_gpgcheck: false
+        gpgkey: "{{ gcloud_yum_gpgkey }}"
+
+    - name: Install the google-cloud-cli package
+      ansible.builtin.dnf:
+        name: "{{ gcloud_package }}"
+        state: present
