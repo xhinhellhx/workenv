@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: yamllint
+  author: xhinhellhx
+  description: Installs yamllint (a linter for YAML files)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew
+    when: ansible_facts['system'] == "Darwin"

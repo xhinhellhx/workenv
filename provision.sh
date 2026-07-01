@@ -76,6 +76,7 @@ COMMON_ROLES=(
 	gitleaks
 	editorconfig_checker
 	yamlfmt
+	yamllint
 	nvm
 	node
 	pyenv
