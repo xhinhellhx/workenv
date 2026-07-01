@@ -1,0 +1,24 @@
+---
+# Raise max open files on Linux via PAM limits and sysctl.
+
+- name: Deploy PAM limits drop-in for max open files
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/90-max-open-files.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      *    soft    nofile    {{ max_open_files_limit }}
+      *    hard    nofile    {{ max_open_files_limit }}
+      root soft    nofile    {{ max_open_files_limit }}
+      root hard    nofile    {{ max_open_files_limit }}
+  become: true
+
+- name: Set fs.file-max kernel parameter
+  ansible.posix.sysctl:
+    name: fs.file-max
+    value: "{{ max_open_files_limit }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/90-max-open-files.conf
+    reload: true
+  become: true

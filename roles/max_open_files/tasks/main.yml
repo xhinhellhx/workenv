@@ -1,0 +1,12 @@
+---
+# Raise the maximum open file descriptors limit.
+#   - macOS: LaunchDaemon plist loaded at boot (/Library/LaunchDaemons/)
+#   - Linux: PAM limits drop-in (/etc/security/limits.d/) + sysctl fs.file-max
+
+- name: Raise max open files limit on macOS
+  ansible.builtin.import_tasks: macos.yml
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Raise max open files limit on Linux
+  ansible.builtin.import_tasks: linux.yml
+  when: ansible_facts['system'] == "Linux"

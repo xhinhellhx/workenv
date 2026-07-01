@@ -1,0 +1,35 @@
+---
+# Raise max open files on macOS via a LaunchDaemon plist.
+# The plist runs `launchctl limit maxfiles` at boot, so the limit persists
+# across reboots without requiring shell profile changes.
+
+- name: Deploy LaunchDaemon plist for maxfiles
+  ansible.builtin.copy:
+    dest: /Library/LaunchDaemons/limit.maxfiles.plist
+    owner: root
+    group: wheel
+    mode: "0644"
+    content: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+        <dict>
+          <key>Label</key>
+          <string>limit.maxfiles</string>
+          <key>ProgramArguments</key>
+          <array>
+            <string>launchctl</string>
+            <string>limit</string>
+            <string>maxfiles</string>
+            <string>{{ max_open_files_limit }}</string>
+            <string>{{ max_open_files_limit }}</string>
+          </array>
+          <key>RunAtLoad</key>
+          <true/>
+          <key>ServiceIPC</key>
+          <false/>
+        </dict>
+      </plist>
+  become: true
+  notify: Load LaunchDaemon to apply limit immediately

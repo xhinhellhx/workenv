@@ -92,6 +92,7 @@ COMMON_ROLES=(
 	gcloud
 	glab
 	plantuml
+	max_open_files
 )
 
 # GUI applications: roles that install a windowed app (a .app on macOS, a

@@ -1,0 +1,6 @@
+---
+- name: Load LaunchDaemon to apply limit immediately
+  ansible.builtin.command:
+    cmd: launchctl load -w /Library/LaunchDaemons/limit.maxfiles.plist
+  become: true
+  changed_when: true

@@ -1,0 +1,5 @@
+---
+# Default variables for the max_open_files role.
+
+# Maximum number of open file descriptors (soft and hard limit).
+max_open_files_limit: 131072
