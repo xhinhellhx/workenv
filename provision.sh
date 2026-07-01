@@ -7,6 +7,9 @@
 # committed site.yml). It writes a temporary playbook listing every role plus
 # the chosen container engine, then hands it to ansible-playbook.
 #
+# Required Galaxy collections (requirements.yml) are installed automatically
+# before the playbook runs; skip that step with --skip-galaxy.
+#
 # Picked variables (currently just the container engine) are remembered in a
 # local state file (.provision.env, git-ignored), so later runs reuse them
 # without prompting. Force a fresh pick with --reconfigure.
@@ -29,6 +32,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Persisted picks from previous runs (sourced as KEY=value shell assignments).
 STATE_FILE="${SCRIPT_DIR}/.provision.env"
+
+# Galaxy collections the playbook depends on (e.g. community.general, which
+# provides homebrew/homebrew_cask/pipx/git_config used across the roles).
+REQUIREMENTS="${SCRIPT_DIR}/requirements.yml"
 
 # Roles applied to every workstation, in a readable top-to-bottom order. The
 # finer ordering is enforced by each role's meta/main.yml `dependencies`
@@ -171,10 +178,12 @@ printf '\n%s%s  workenv provisioner%s\n\n' "${BOLD}" "${CYAN}" "${RESET}"
 
 # --- Parse our own flags (everything else is forwarded to ansible-playbook) ---
 reconfigure=0
+skip_galaxy=0
 PLAYBOOK_ARGS=()
 for arg in "$@"; do
 	case "$arg" in
 		--reconfigure) reconfigure=1 ;;
+		--skip-galaxy) skip_galaxy=1 ;;
 		*) PLAYBOOK_ARGS+=("$arg") ;;
 	esac
 done
@@ -219,6 +228,25 @@ trap 'rm -f "$TMP_PLAYBOOK"' EXIT
 
 generate_playbook "$engine" "$TMP_PLAYBOOK"
 info "Generated playbook: ${DIM}${TMP_PLAYBOOK}${RESET}"
+
+# --- Install Galaxy dependencies ----------------------------------------------
+# The roles reference modules from community.general (homebrew, homebrew_cask,
+# pipx, git_config). Ansible resolves a task's module *before* evaluating its
+# `when:`, so the collection must be present on every platform — even where the
+# homebrew tasks are skipped. Install it up front to avoid "couldn't resolve
+# module/action" errors.
+if [[ "$skip_galaxy" -eq 0 ]]; then
+	if [[ -f "$REQUIREMENTS" ]]; then
+		command -v ansible-galaxy >/dev/null 2>&1 \
+			|| die "ansible-galaxy not found. Install Ansible first, or pass --skip-galaxy."
+		info "Installing Galaxy collections from ${DIM}${REQUIREMENTS}${RESET}"
+		ansible-galaxy collection install -r "$REQUIREMENTS"
+	else
+		warn "No requirements.yml at ${REQUIREMENTS}; skipping Galaxy install."
+	fi
+else
+	info "Skipping Galaxy collection install (--skip-galaxy)."
+fi
 
 # --- Apply --------------------------------------------------------------------
 cd "$SCRIPT_DIR"

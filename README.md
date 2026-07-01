@@ -24,10 +24,10 @@ writes a temporary playbook listing every role plus that engine, and applies it.
 
 ## Usage
 
-```sh
-# Install dependencies (if any)
-ansible-galaxy install -r requirements.yml
+`provision.sh` installs the required Galaxy collections (`requirements.yml`)
+itself, so there's no separate setup step.
 
+```sh
 # Interactively pick a container engine, then dry-run against the local machine
 ./provision.sh --check --diff
 
@@ -39,6 +39,9 @@ CONTAINER_ENGINE=podman ./provision.sh
 
 # Change a remembered pick
 ./provision.sh --reconfigure
+
+# Reuse already-installed collections (skip the Galaxy step)
+./provision.sh --skip-galaxy
 ```
 
 Your picks are remembered in `.provision.env` (git-ignored), so later runs skip
