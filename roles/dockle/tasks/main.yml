@@ -1,8 +1,16 @@
 ---
 # Install dockle (container image linter).
 #   - macOS: Homebrew tap goodwithtech/r (Homebrew ensured by the `homebrew`
-#     role dependency; the fully-qualified name auto-taps on install)
+#     role dependency; the tap is added explicitly because the homebrew module
+#     does not auto-tap fully-qualified formula names)
 #   - Linux: official release tarball -> /usr/local/bin
+
+- name: Tap goodwithtech/r (macOS)
+  community.general.homebrew_tap:
+    name: goodwithtech/r
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
 
 - name: Install dockle (macOS, Homebrew)
   community.general.homebrew:

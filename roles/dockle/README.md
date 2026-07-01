@@ -9,8 +9,9 @@ Installs [dockle](https://github.com/goodwithtech/dockle).
 | RHEL family     | Official release tarball → `/usr/local/bin`  |
 
 Idempotent on Linux (skips when `dockle --version` matches). Homebrew is
-ensured by the `homebrew` role dependency; the fully-qualified formula name
-auto-taps `goodwithtech/r` on install.
+ensured by the `homebrew` role dependency; the `goodwithtech/r` tap is added
+explicitly before install because the Ansible `homebrew` module does not
+auto-tap fully-qualified formula names.
 
 ## Variables
 
