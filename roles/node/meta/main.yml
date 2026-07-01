@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: node
+  author: xhinhellhx
+  description: Installs the latest LTS Node.js via nvm
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: nvm

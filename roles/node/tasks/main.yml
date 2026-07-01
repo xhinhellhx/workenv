@@ -1,0 +1,15 @@
+---
+# Install the latest LTS Node.js using nvm (set up by the `nvm` role dependency).
+# nvm is a shell function, so it must be sourced inside a bash shell.
+
+- name: Install the latest LTS Node.js and set it as default
+  ansible.builtin.shell: |
+    source "{{ nvm_dir }}/nvm.sh"
+    nvm install --lts
+    nvm alias default 'lts/*'
+  args:
+    executable: /bin/bash
+  environment:
+    NVM_DIR: "{{ nvm_dir }}"
+  register: node_install
+  changed_when: "'is already installed' not in node_install.stdout"
