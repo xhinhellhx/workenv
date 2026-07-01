@@ -31,5 +31,13 @@ ghostty_bin: "/usr/local/bin/ghostty"
 # rasterizer exposes OpenGL 4.5, satisfying the requirement, and is selected by
 # setting LIBGL_ALWAYS_SOFTWARE=1. We enable that automatically inside VM guests
 # (where there is no hardware acceleration to lose anyway) and leave bare-metal
-# hosts on their real GPU driver. Override to true/false to force the choice.
-ghostty_force_software_opengl: "{{ ansible_facts['virtualization_role'] | default('NA') == 'guest' }}"
+# hosts on their real GPU driver.
+#
+# Left as "auto" (the default) the role detects a VM guest at runtime — see
+# install-linux.yml. Detection does not trust Ansible's virtualization_role fact
+# alone: it misses some hypervisors and on Fedora guests often comes back
+# 'NA'/'host', which silently disabled this workaround (so Ghostty would not
+# start from the GNOME dock). It falls back to systemd-detect-virt, which is
+# authoritative on systemd distros. Set to true or false to force the choice and
+# skip detection.
+ghostty_force_software_opengl: "auto"

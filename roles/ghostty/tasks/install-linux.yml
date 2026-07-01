@@ -89,6 +89,33 @@
   become: true
   when: ansible_facts['os_family'] == "RedHat"
 
+# --- Decide whether to force software OpenGL (llvmpipe) -----------------------
+# When ghostty_force_software_opengl is left at "auto", work out whether this is
+# a VM guest (whose virtual GPU likely caps hardware GL below the 4.3 Ghostty
+# needs). Ansible's virtualization_role fact is not reliable enough on its own —
+# it misses some hypervisors and on Fedora guests frequently reports 'NA'/'host'
+# — so fall back to systemd-detect-virt, the authoritative probe on systemd
+# distros. `--vm --quiet` exits 0 inside a VM (excluding containers) and prints
+# nothing, so we only need its return code.
+- name: Detect virtualization with systemd-detect-virt (auto mode)
+  ansible.builtin.command:
+    cmd: systemd-detect-virt --vm --quiet
+  register: ghostty_detect_virt
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: ghostty_force_software_opengl == "auto"
+
+- name: Resolve whether to force software OpenGL for Ghostty
+  ansible.builtin.set_fact:
+    ghostty_force_software_opengl: >-
+      {{
+        (ansible_facts['virtualization_role'] | default('NA') == 'guest')
+        or (ghostty_detect_virt.rc | default(1) == 0)
+        if ghostty_force_software_opengl == "auto"
+        else (ghostty_force_software_opengl | bool)
+      }}
+
 # --- Install Ghostty ----------------------------------------------------------
 - name: Install the Ghostty snap (classic confinement)
   community.general.snap:
