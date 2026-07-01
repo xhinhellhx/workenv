@@ -36,6 +36,11 @@ ansible-galaxy install -r requirements.yml
 
 # Skip the prompt by pinning the engine
 CONTAINER_ENGINE=podman ./provision.sh
+
+# Change a remembered pick
+./provision.sh --reconfigure
 ```
 
-Extra arguments are forwarded to `ansible-playbook`.
+Your picks are remembered in `.provision.env` (git-ignored), so later runs skip
+the prompt. Precedence is `CONTAINER_ENGINE` env var > saved state > prompt.
+Any other arguments are forwarded to `ansible-playbook`.
