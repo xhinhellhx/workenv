@@ -48,10 +48,10 @@ keybind = super+physical:nine=goto_tab:9
 # --- Keybindings: splits / panes ---
 keybind = super+d=new_split:right
 keybind = super+shift+d=new_split:down
-keybind = super+alt+left=goto_split:left
-keybind = super+alt+right=goto_split:right
-keybind = super+alt+up=goto_split:up
-keybind = super+alt+down=goto_split:down
+keybind = super+shift+left=goto_split:left
+keybind = super+shift+right=goto_split:right
+keybind = super+shift+up=goto_split:up
+keybind = super+shift+down=goto_split:down
 keybind = super+shift+enter=toggle_split_zoom
 
 # --- Keybindings: copy / selection / scrollback ---
@@ -62,5 +62,7 @@ keybind = super+up=scroll_page_up
 keybind = super+down=scroll_page_down
 keybind = super+home=scroll_to_top
 keybind = super+end=scroll_to_bottom
-keybind = super+shift+up=jump_to_prompt:-1
-keybind = super+shift+down=jump_to_prompt:1
+# super+shift+up/down drive pane navigation (see splits/panes above), so prompt
+# jumps live on super+ctrl+up/down.
+keybind = super+ctrl+up=jump_to_prompt:-1
+keybind = super+ctrl+down=jump_to_prompt:1
