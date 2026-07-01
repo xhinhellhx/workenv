@@ -22,19 +22,19 @@
           - ca-certificates
           - gnupg
           - curl
+          - python3-debian
         state: present
         update_cache: true
         cache_valid_time: 3600
 
-    - name: Add the Google Cloud apt signing key
-      ansible.builtin.shell:
-        cmd: "curl -fsSL {{ gcloud_apt_key_url }} | gpg --dearmor -o {{ gcloud_apt_keyring }}"
-        creates: "{{ gcloud_apt_keyring }}"
-
-    - name: Add the Google Cloud apt repository
-      ansible.builtin.apt_repository:
-        repo: "deb [signed-by={{ gcloud_apt_keyring }}] {{ gcloud_apt_repo }} cloud-sdk main"
-        filename: google-cloud-sdk
+    - name: Add the Google Cloud apt repository (deb822)
+      ansible.builtin.deb822_repository:
+        name: google-cloud-sdk
+        types: [deb]
+        uris: "{{ gcloud_apt_repo }}"
+        suites: [cloud-sdk]
+        components: [main]
+        signed_by: "{{ gcloud_apt_key_url }}"
         state: present
 
     - name: Install the google-cloud-cli package
