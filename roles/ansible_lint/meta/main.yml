@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: ansible_lint
+  author: xhinhellhx
+  description: Installs ansible-lint (a linter for Ansible playbooks and roles)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew
+    when: ansible_facts['system'] == "Darwin"

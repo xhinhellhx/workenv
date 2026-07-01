@@ -78,6 +78,7 @@ COMMON_ROLES=(
 	editorconfig_checker
 	yamlfmt
 	yamllint
+	ansible_lint
 	nvm
 	node
 	pyenv
