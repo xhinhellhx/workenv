@@ -7,3 +7,14 @@ ghostty_snapd_package: "snapd"
 # On the RHEL family snapd ships in EPEL, so this repository package must be
 # installed before snapd is available.
 ghostty_epel_package: "epel-release"
+
+# Ghostty renders with OpenGL and requires OpenGL 4.3, provided by the host's
+# Mesa drivers (the snap bundles GTK4/libadwaita but uses the host GL stack).
+# These packages pull in libGL and the Mesa DRI drivers that expose OpenGL 4.3.
+ghostty_opengl_packages:
+  Debian:
+    - libgl1-mesa-dri
+    - libglx-mesa0
+  RedHat:
+    - mesa-libGL
+    - mesa-dri-drivers

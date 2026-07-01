@@ -67,6 +67,26 @@
   become: true
   changed_when: false
 
+# --- OpenGL (Mesa) drivers ----------------------------------------------------
+# Ghostty renders with OpenGL and requires OpenGL 4.3, which is provided by the
+# host's Mesa drivers. Install libGL and the Mesa DRI drivers so the required
+# OpenGL version is available.
+- name: Install OpenGL (Mesa) drivers required by Ghostty (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ ghostty_opengl_packages['Debian'] }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install OpenGL (Mesa) drivers required by Ghostty (RHEL family)
+  ansible.builtin.dnf:
+    name: "{{ ghostty_opengl_packages['RedHat'] }}"
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
+
 # --- Install Ghostty ----------------------------------------------------------
 - name: Install the Ghostty snap (classic confinement)
   community.general.snap:
