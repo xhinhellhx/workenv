@@ -32,13 +32,14 @@
         dest: "{{ nvm_dir }}"
         version: "{{ nvm_version | default(omit, true) }}"
 
-    - name: Determine the latest nvm release tag
+    # `git describe` has no ansible module equivalent.
+    - name: Determine the latest nvm release tag # noqa: command-instead-of-module
       ansible.builtin.command: "git -C {{ nvm_dir }} describe --abbrev=0 --tags"
       register: nvm_latest_tag
       changed_when: false
       when: nvm_version | length == 0
 
-    - name: Check out the latest nvm release
+    - name: Check out the latest nvm release # noqa: command-instead-of-module
       ansible.builtin.command: "git -C {{ nvm_dir }} checkout {{ nvm_latest_tag.stdout }}"
       changed_when: true
       when: nvm_version | length == 0

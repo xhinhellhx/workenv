@@ -19,7 +19,7 @@
       changed_when: false
       failed_when: false
 
-    - name: Install golangci-lint {{ golangci_lint_version }} from the release tarball
+    - name: Install golangci-lint from the release tarball, version {{ golangci_lint_version }}
       when: golangci_lint_version not in golangci_lint_installed.stdout
       block:
         - name: Create a temporary directory for the golangci-lint download
@@ -37,7 +37,7 @@
         - name: Install the golangci-lint binary
           ansible.builtin.shell: |
             set -eu
-            bin="$(find '{{ golangci_lint_tmp.path }}' -type f -name golangci-lint | head -n1)"
+            bin="$(find '{{ golangci_lint_tmp.path }}' -type f -name golangci-lint -print -quit)"
             install -m 0755 "$bin" '{{ golangci_lint_install_dir }}/golangci-lint'
           become: true
           changed_when: true

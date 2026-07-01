@@ -1,0 +1,10 @@
+---
+# ansible-lint configuration.
+
+skip_list:
+  # Roles deliberately use shared cross-role variables (e.g. omz_custom,
+  # zsh_fragment_subdirs), user-facing config variables (p10k_*, git_*,
+  # omz_bundled_plugins), and short register/set_fact names rather than a
+  # per-role prefix. This is an intentional design choice, so the role-prefix
+  # convention is disabled.
+  - var-naming[no-role-prefix]

@@ -2,14 +2,14 @@
 # Install a Python version with pyenv (pyenv itself is set up by the
 # `pyenv` role dependency, which also installs the build dependencies).
 
-- name: Resolve the target Python {{ python_version }} version
+- name: Resolve the target Python version {{ python_version }}
   ansible.builtin.command: "{{ pyenv_bin }} latest -k {{ python_version }}"
   environment:
     PYENV_ROOT: "{{ pyenv_root }}"
   register: python_resolved
   changed_when: false
 
-- name: Install Python {{ python_resolved.stdout }} via pyenv
+- name: Install the resolved Python version via pyenv {{ python_resolved.stdout }}
   ansible.builtin.command: "{{ pyenv_bin }} install -s {{ python_resolved.stdout }}"
   args:
     creates: "{{ pyenv_root }}/versions/{{ python_resolved.stdout }}"
@@ -24,7 +24,7 @@
   changed_when: false
   when: python_set_global
 
-- name: Set Python {{ python_resolved.stdout }} as the global version
+- name: Set the global pyenv Python version to {{ python_resolved.stdout }}
   ansible.builtin.command: "{{ pyenv_bin }} global {{ python_resolved.stdout }}"
   environment:
     PYENV_ROOT: "{{ pyenv_root }}"

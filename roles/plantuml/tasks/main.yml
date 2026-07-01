@@ -36,7 +36,7 @@
         mode: "0755"
       become: true
 
-    - name: Download the PlantUML {{ plantuml_version }} jar
+    - name: Download the PlantUML jar, version {{ plantuml_version }}
       ansible.builtin.get_url:
         url: "{{ plantuml_jar_url }}"
         dest: "{{ plantuml_install_dir }}/plantuml.jar"

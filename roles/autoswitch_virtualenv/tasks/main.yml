@@ -5,6 +5,7 @@
   ansible.builtin.git:
     repo: "{{ autoswitch_virtualenv_repo }}"
     dest: "{{ omz_custom }}/plugins/autoswitch_virtualenv"
+    version: master
     depth: 1
     update: false
 

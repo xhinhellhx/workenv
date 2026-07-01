@@ -19,7 +19,7 @@
       changed_when: false
       failed_when: false
 
-    - name: Install goreleaser {{ goreleaser_version }} from the release tarball
+    - name: Install goreleaser from the release tarball, version {{ goreleaser_version }}
       when: goreleaser_version not in goreleaser_installed.stdout
       block:
         - name: Create a temporary directory for the goreleaser download
@@ -37,7 +37,7 @@
         - name: Install the goreleaser binary
           ansible.builtin.shell: |
             set -eu
-            bin="$(find '{{ goreleaser_tmp.path }}' -type f -name goreleaser | head -n1)"
+            bin="$(find '{{ goreleaser_tmp.path }}' -type f -name goreleaser -print -quit)"
             install -m 0755 "$bin" '{{ goreleaser_install_dir }}/goreleaser'
           become: true
           changed_when: true

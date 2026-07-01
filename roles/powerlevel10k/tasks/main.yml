@@ -11,7 +11,7 @@
     update: false
 
 # --- Generate ~/.p10k.zsh from the chosen wizard template ---------------------
-- name: Generate ~/.p10k.zsh from the {{ p10k_style }} template
+- name: Generate ~/.p10k.zsh from the wizard template {{ p10k_style }}
   ansible.builtin.copy:
     src: "{{ p10k_dir }}/config/p10k-{{ p10k_style }}.zsh"
     dest: "{{ ansible_env.HOME }}/.p10k.zsh"

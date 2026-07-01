@@ -19,7 +19,7 @@
   become: true
   when: ansible_os_family == "RedHat"
 
-- name: Check whether Nerd Fonts {{ nerd_fonts_version }} are already installed
+- name: Check whether the installed Nerd Fonts match {{ nerd_fonts_version }}
   ansible.builtin.stat:
     path: "{{ nerd_fonts_state_file }}"
   register: nerd_fonts_marker

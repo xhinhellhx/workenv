@@ -18,7 +18,8 @@
   become: true
   when: ansible_os_family == "RedHat"
 
-- name: Locate the zsh binary
+# `command -v` is a shell builtin, so the shell module is required here.
+- name: Locate the zsh binary # noqa: command-instead-of-shell
   ansible.builtin.shell: command -v zsh
   register: zsh_binary
   changed_when: false

@@ -19,7 +19,7 @@
       changed_when: false
       failed_when: false
 
-    - name: Download the shfmt {{ shfmt_version }} binary
+    - name: Download the shfmt binary, version {{ shfmt_version }}
       ansible.builtin.get_url:
         url: "{{ shfmt_download_url }}"
         dest: "{{ shfmt_install_dir }}/shfmt"

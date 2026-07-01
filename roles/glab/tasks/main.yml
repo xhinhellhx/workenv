@@ -19,7 +19,7 @@
       changed_when: false
       failed_when: false
 
-    - name: Install glab {{ glab_version }} from the release tarball
+    - name: Install glab from the release tarball, version {{ glab_version }}
       when: glab_version not in glab_installed.stdout
       block:
         - name: Create a temporary directory for the glab download
@@ -37,7 +37,7 @@
         - name: Install the glab binary
           ansible.builtin.shell: |
             set -eu
-            bin="$(find '{{ glab_tmp.path }}' -type f -name glab | head -n1)"
+            bin="$(find '{{ glab_tmp.path }}' -type f -name glab -print -quit)"
             install -m 0755 "$bin" '{{ glab_install_dir }}/glab'
           become: true
           changed_when: true
