@@ -77,6 +77,7 @@
 - name: Stat the extracted AppRun launcher
   ansible.builtin.stat:
     path: "{{ ghostty_appimage_dir }}/AppDir/AppRun"
+  become: true
   register: ghostty_apprun
 
 - name: Fail clearly if the AppImage did not extract a runnable AppRun
@@ -156,6 +157,7 @@
     paths: "{{ ghostty_appimage_dir }}/AppDir/usr/share/icons/hicolor"
     patterns: "com.mitchellh.ghostty.*"
     recurse: true
+  become: true
   register: ghostty_icons
 
 - name: Mirror Ghostty icons into /usr/share/icons/hicolor
