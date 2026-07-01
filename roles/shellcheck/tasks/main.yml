@@ -1,0 +1,38 @@
+---
+# Install ShellCheck.
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Debian/Ubuntu: apt package `shellcheck`
+#   - RHEL family: EPEL package `ShellCheck`
+
+- name: Install shellcheck (macOS, Homebrew)
+  community.general.homebrew:
+    name: shellcheck
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_system == "Darwin"
+
+- name: Install shellcheck (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: shellcheck
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_os_family == "Debian"
+
+- name: Enable EPEL repository (RHEL family, excluding Fedora)
+  ansible.builtin.dnf:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+  become: true
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
+
+- name: Install ShellCheck (RHEL family)
+  ansible.builtin.dnf:
+    name: ShellCheck
+    state: present
+  become: true
+  when: ansible_os_family == "RedHat"

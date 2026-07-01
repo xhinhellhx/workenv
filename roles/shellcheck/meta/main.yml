@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: shellcheck
+  author: xhinhellhx
+  description: Installs ShellCheck (shell script static analysis)
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: MacOSX
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies:
+  - role: homebrew
