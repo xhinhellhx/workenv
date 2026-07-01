@@ -15,5 +15,4 @@ neovim_install_prefix: "/usr/local"
 neovim_build_type: "RelWithDebInfo"
 
 # --- macOS: Homebrew ----------------------------------------------------------
-# Homebrew prefix differs between Apple Silicon and Intel.
-homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"
+# `homebrew_prefix` is provided by the `homebrew` role dependency.

@@ -1,20 +1,6 @@
 ---
-# Install Neovim on macOS via Homebrew, installing Homebrew first if needed.
-
-- name: Check whether Homebrew is installed
-  ansible.builtin.stat:
-    path: "{{ homebrew_prefix }}/bin/brew"
-  register: brew_binary
-
-- name: Install Homebrew
-  ansible.builtin.shell:
-    cmd: >-
-      /bin/bash -c
-      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  environment:
-    NONINTERACTIVE: "1"
-  when: not brew_binary.stat.exists
-  changed_when: true
+# Install Neovim on macOS via Homebrew.
+# Homebrew itself is ensured by the `homebrew` role dependency.
 
 - name: Install Neovim
   community.general.homebrew:
