@@ -85,6 +85,7 @@ COMMON_ROLES=(
 	golang
 	golangci_lint
 	goreleaser
+	just
 	terraform
 	helm
 	gcloud

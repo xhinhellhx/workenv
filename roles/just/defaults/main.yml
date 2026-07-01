@@ -1,0 +1,16 @@
+---
+# Default variables for the just role.
+
+# Official cross-platform installer (works on macOS and Linux).
+just_install_url: "https://just.systems/install.sh"
+
+# renovate: datasource=github-releases depName=casey/just
+just_version: "1.54.0"
+
+# Per-user install directory (no root required); the binary lands here as `just`.
+just_install_dir: "{{ ansible_facts['env'].HOME }}/.local/bin"
+just_bin: "{{ just_install_dir }}/just"
+
+# Set to true to re-run the installer even when just is already present at the
+# requested version (e.g. to force a reinstall).
+just_force: false

@@ -1,0 +1,44 @@
+---
+# Install just (a command runner) via the official install script.
+#
+# The installer (https://just.systems/install.sh) is cross-platform, so the
+# same per-user flow is used on macOS and Linux: the binary is placed in
+# ~/.local/bin (no root required). Ensure that directory is on PATH so the
+# `just` command is found afterwards.
+
+- name: Check installed just version
+  ansible.builtin.command: "{{ just_bin }} --version"
+  register: just_installed
+  changed_when: false
+  failed_when: false
+
+- name: Install just {{ just_version }}
+  when: just_force or (just_version not in just_installed.stdout)
+  block:
+    - name: Ensure the install directory exists
+      ansible.builtin.file:
+        path: "{{ just_install_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Create a temporary directory for the just installer
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: just
+      register: just_tmp
+
+    - name: Download the just install script
+      ansible.builtin.get_url:
+        url: "{{ just_install_url }}"
+        dest: "{{ just_tmp.path }}/install.sh"
+        mode: "0755"
+
+    - name: Run the just install script
+      ansible.builtin.command:
+        cmd: "{{ just_tmp.path }}/install.sh --tag {{ just_version }} --to {{ just_install_dir }}"
+      changed_when: true
+
+    - name: Remove the temporary directory
+      ansible.builtin.file:
+        path: "{{ just_tmp.path }}"
+        state: absent
