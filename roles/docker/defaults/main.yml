@@ -1,8 +1,13 @@
 ---
 # Default variables for the docker role.
 
-# macOS: Docker Desktop Homebrew cask.
-docker_brew_cask: "docker"
+# macOS: install the Docker CLI and the Colima runtime as Homebrew *formulae*
+# (no Docker Desktop). Casks install a .app and require an authentication
+# prompt that breaks the non-interactive playbook; formulae do not.
+docker_brew_formulae:
+  - docker
+  - docker-compose
+  - colima
 
 # Linux: users added to the `docker` group (to run docker without sudo).
 docker_users:

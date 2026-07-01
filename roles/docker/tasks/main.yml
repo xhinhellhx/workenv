@@ -1,17 +1,32 @@
 ---
 # Install Docker.
-#   - macOS: Docker Desktop via Homebrew cask (Homebrew ensured by dependency)
+#   - macOS: Docker CLI + Colima runtime via Homebrew formulae (no Docker
+#     Desktop — casks need an auth prompt that breaks the non-interactive run).
 #   - Linux: official convenience script, then enable the daemon and grant
 #     group access (Debian/Ubuntu and RHEL family).
 
-- name: Install and auto-start Docker Desktop (macOS)
+- name: Install and auto-start Docker via Colima (macOS, no Docker Desktop)
   when: ansible_facts['system'] == "Darwin"
   block:
-    - name: Install Docker Desktop (macOS)
-      community.general.homebrew_cask:
-        name: "{{ docker_brew_cask }}"
+    - name: Install the Docker CLI and Colima runtime (Homebrew formulae)
+      community.general.homebrew:
+        name: "{{ docker_brew_formulae }}"
         state: present
         path: "{{ homebrew_prefix }}/bin"
+
+    # `docker compose` (v2 subcommand) needs the formula linked as a CLI plugin.
+    - name: Ensure the Docker CLI plugins directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_facts['env'].HOME }}/.docker/cli-plugins"
+        state: directory
+        mode: "0755"
+
+    - name: Link docker-compose as a Docker CLI plugin (enables `docker compose`)
+      ansible.builtin.file:
+        src: "{{ homebrew_prefix }}/opt/docker-compose/bin/docker-compose"
+        dest: "{{ ansible_facts['env'].HOME }}/.docker/cli-plugins/docker-compose"
+        state: link
+        force: true
 
     - name: Ensure the user LaunchAgents directory exists
       ansible.builtin.file:
@@ -19,9 +34,15 @@
         state: directory
         mode: "0755"
 
-    - name: Start Docker Desktop at login (LaunchAgent)
+    # Remove the old Docker Desktop autostart agent if a previous run created it.
+    - name: Remove the legacy Docker Desktop autostart agent
+      ansible.builtin.file:
+        path: "{{ ansible_facts['env'].HOME }}/Library/LaunchAgents/com.workenv.docker-autostart.plist"
+        state: absent
+
+    - name: Start the Colima VM at login (LaunchAgent)
       ansible.builtin.copy:
-        dest: "{{ ansible_facts['env'].HOME }}/Library/LaunchAgents/com.workenv.docker-autostart.plist"
+        dest: "{{ ansible_facts['env'].HOME }}/Library/LaunchAgents/com.workenv.colima-autostart.plist"
         mode: "0644"
         content: |
           <?xml version="1.0" encoding="UTF-8"?>
@@ -29,18 +50,32 @@
           <plist version="1.0">
           <dict>
               <key>Label</key>
-              <string>com.workenv.docker-autostart</string>
+              <string>com.workenv.colima-autostart</string>
               <key>ProgramArguments</key>
               <array>
-                  <string>/usr/bin/open</string>
-                  <string>--background</string>
-                  <string>-a</string>
-                  <string>Docker</string>
+                  <string>{{ homebrew_prefix }}/bin/colima</string>
+                  <string>start</string>
               </array>
+              <key>EnvironmentVariables</key>
+              <dict>
+                  <key>PATH</key>
+                  <string>{{ homebrew_prefix }}/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+              </dict>
               <key>RunAtLoad</key>
               <true/>
           </dict>
           </plist>
+
+    - name: Check whether the Colima VM is already running
+      ansible.builtin.command: "{{ homebrew_prefix }}/bin/colima status"
+      register: colima_status
+      changed_when: false
+      failed_when: false
+
+    - name: Start the Colima VM now
+      ansible.builtin.command: "{{ homebrew_prefix }}/bin/colima start"
+      when: colima_status.rc != 0
+      changed_when: true
 
 - name: Install Docker (Linux)
   when: ansible_facts['system'] == "Linux"
