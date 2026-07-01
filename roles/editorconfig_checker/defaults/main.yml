@@ -1,0 +1,12 @@
+---
+# Default variables for the editorconfig_checker role.
+
+# renovate: datasource=github-releases depName=editorconfig-checker/editorconfig-checker extractVersion=^v(?<version>.+)$
+editorconfig_checker_version: "3.7.0"
+editorconfig_checker_install_dir: "/usr/local/bin"
+editorconfig_checker_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
+# The release tarball ships the binary as bin/ec-linux-<arch>; it is installed as `ec`.
+editorconfig_checker_binary: "ec-linux-{{ editorconfig_checker_arch }}"
+editorconfig_checker_archive: "ec-linux-{{ editorconfig_checker_arch }}.tar.gz"
+editorconfig_checker_repo: "https://github.com/editorconfig-checker/editorconfig-checker"
+editorconfig_checker_download_url: "{{ editorconfig_checker_repo }}/releases/download/v{{ editorconfig_checker_version }}/{{ editorconfig_checker_archive }}"

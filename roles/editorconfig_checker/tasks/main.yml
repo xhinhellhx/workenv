@@ -1,0 +1,58 @@
+---
+# Install editorconfig-checker (.editorconfig compliance linter).
+#   - macOS: Homebrew (editorconfig-checker is in homebrew-core; Homebrew
+#     ensured by the `homebrew` role dependency)
+#   - Linux: official release tarball -> /usr/local/bin/ec
+#
+# The Linux tarball ships the binary as bin/ec-linux-<arch>, so it is extracted
+# to a temporary directory and copied into place as `ec` (matching the name the
+# Homebrew formula installs).
+
+- name: Install editorconfig-checker (macOS, Homebrew)
+  community.general.homebrew:
+    name: editorconfig-checker
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install editorconfig-checker (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed editorconfig-checker version
+      ansible.builtin.command: "{{ editorconfig_checker_install_dir }}/ec --version"
+      register: editorconfig_checker_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Install the editorconfig-checker binary, version {{ editorconfig_checker_version }}
+      when: editorconfig_checker_version not in editorconfig_checker_installed.stdout
+      block:
+        - name: Create a temporary directory for the editorconfig-checker archive
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: editorconfig-checker
+          register: editorconfig_checker_tmp
+
+        - name: Download and extract the editorconfig-checker binary
+          ansible.builtin.unarchive:
+            src: "{{ editorconfig_checker_download_url }}"
+            dest: "{{ editorconfig_checker_tmp.path }}"
+            remote_src: true
+            include:
+              - "bin/{{ editorconfig_checker_binary }}"
+
+        - name: Install the editorconfig-checker binary as ec into {{ editorconfig_checker_install_dir }}
+          ansible.builtin.copy:
+            src: "{{ editorconfig_checker_tmp.path }}/bin/{{ editorconfig_checker_binary }}"
+            dest: "{{ editorconfig_checker_install_dir }}/ec"
+            remote_src: true
+            mode: "0755"
+            owner: root
+            group: root
+          become: true
+      always:
+        - name: Remove the temporary editorconfig-checker directory
+          ansible.builtin.file:
+            path: "{{ editorconfig_checker_tmp.path }}"
+            state: absent
+          when: editorconfig_checker_tmp.path is defined

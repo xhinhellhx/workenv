@@ -74,6 +74,7 @@ COMMON_ROLES=(
 	dockle
 	trivy
 	gitleaks
+	editorconfig_checker
 	nvm
 	node
 	pyenv
