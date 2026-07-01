@@ -3,3 +3,4 @@
 .vault_pass
 # provision.sh remembered picks (container engine, …)
 .provision.env
+/.ansible
