@@ -115,7 +115,7 @@
 
 - name: Refresh the hicolor icon cache
   ansible.builtin.command:
-    cmd: "gtk-update-icon-cache --force {{ ghostty_install_prefix }}/share/icons/hicolor"
+    cmd: "gtk-update-icon-cache --force --ignore-theme-index {{ ghostty_install_prefix }}/share/icons/hicolor"
   become: true
   when: ghostty_build_required
   changed_when: true
