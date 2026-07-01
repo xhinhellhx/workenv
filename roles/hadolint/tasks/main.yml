@@ -1,0 +1,28 @@
+---
+# Install hadolint (Dockerfile linter).
+#   - macOS: Homebrew (Homebrew ensured by the `homebrew` role dependency)
+#   - Linux: official release binary -> /usr/local/bin
+
+- name: Install hadolint (macOS, Homebrew)
+  community.general.homebrew:
+    name: hadolint
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install hadolint (Linux)
+  when: ansible_facts['system'] == "Linux"
+  block:
+    - name: Check installed hadolint version
+      ansible.builtin.command: "{{ hadolint_install_dir }}/hadolint --version"
+      register: hadolint_installed
+      changed_when: false
+      failed_when: false
+
+    - name: Download the hadolint binary, version {{ hadolint_version }}
+      ansible.builtin.get_url:
+        url: "{{ hadolint_download_url }}"
+        dest: "{{ hadolint_install_dir }}/hadolint"
+        mode: "0755"
+      become: true
+      when: hadolint_version not in hadolint_installed.stdout

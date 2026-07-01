@@ -1,0 +1,8 @@
+---
+# Default variables for the hadolint role.
+
+# renovate: datasource=github-releases depName=hadolint/hadolint extractVersion=^v(?<version>.+)$
+hadolint_version: "2.12.0"
+hadolint_install_dir: "/usr/local/bin"
+hadolint_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'x86_64' }}"
+hadolint_download_url: "https://github.com/hadolint/hadolint/releases/download/v{{ hadolint_version }}/hadolint-Linux-{{ hadolint_arch }}"

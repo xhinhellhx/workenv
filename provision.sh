@@ -70,6 +70,7 @@ COMMON_ROLES=(
 	pre_commit
 	shellcheck
 	shfmt
+	hadolint
 	nvm
 	node
 	pyenv
