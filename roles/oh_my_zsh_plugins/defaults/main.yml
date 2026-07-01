@@ -1,0 +1,22 @@
+---
+# Default variables for the oh_my_zsh_plugins role.
+# Bundled oh-my-zsh plugins (no installation needed) to enable. Platform plugins
+# (brew/macos, ubuntu/debian, dnf) are appended automatically.
+# history-substring-search is handled separately so it loads last.
+omz_bundled_plugins:
+  - git
+  - dirpersist
+  - colorize
+  - colored-man-pages
+  - command-not-found
+  - cp
+  - history
+  - gitignore
+  - docker
+  - podman
+  - golang
+  - pyenv
+  - virtualenv
+
+# Enable history-substring-search (loaded after zsh-syntax-highlighting).
+omz_enable_history_substring_search: true

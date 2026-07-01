@@ -1,0 +1,28 @@
+---
+# Enable bundled + platform-specific oh-my-zsh plugins via plugins.d fragments.
+# Depends on zsh_config (provides the fragment dirs and the .zshrc skeleton).
+
+- name: Compute the platform-specific plugins
+  ansible.builtin.set_fact:
+    omz_platform_plugins: >-
+      {{ ['macos', 'brew'] if ansible_system == 'Darwin'
+         else (['ubuntu'] if ansible_distribution == 'Ubuntu'
+         else (['debian'] if ansible_os_family == 'Debian'
+         else (['dnf'] if ansible_os_family == 'RedHat' else []))) }}
+
+- name: Enable bundled and platform plugins (plugins.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/plugins.d/30-bundled.zsh"
+    mode: "0644"
+    content: |
+      plugins+=({{ (omz_bundled_plugins + omz_platform_plugins) | join(' ') }})
+
+# history-substring-search must load after zsh-syntax-highlighting (90), so it
+# gets its own late fragment.
+- name: Enable history-substring-search last (plugins.d)
+  ansible.builtin.copy:
+    dest: "{{ zsh_fragment_dir }}/plugins.d/99-history-substring-search.zsh"
+    mode: "0644"
+    content: |
+      plugins+=(history-substring-search)
+  when: omz_enable_history_substring_search
