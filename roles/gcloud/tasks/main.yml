@@ -67,6 +67,16 @@
   when: ansible_facts['os_family'] == "RedHat"
   become: true
   block:
+    - name: Import the Google Cloud RPM signing keys
+      # Listing the keys under `gpgkey` only tells dnf where to fetch them; the
+      # auto-import at install time is unreliable and leaves the package-signing
+      # key missing ("public key ... is not installed"). Importing them into the
+      # rpmdb up front guarantees signature validation succeeds.
+      ansible.builtin.rpm_key:
+        key: "{{ item }}"
+        state: present
+      loop: "{{ gcloud_yum_gpgkey }}"
+
     - name: Add the Google Cloud yum repository
       ansible.builtin.yum_repository:
         name: google-cloud-cli
