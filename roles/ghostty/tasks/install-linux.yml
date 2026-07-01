@@ -118,6 +118,23 @@
   become: true
   when: ghostty_binary.stat.exists
 
+# A partial `zig build` (e.g. missing gtk4/libadwaita/blueprint-compiler on
+# RHEL) can fail to emit the binary while still leaving the play "successful".
+# The desktop entry below would then point at a non-existent Exec, which GNOME
+# silently hides — looking exactly like "installed but not in my applications".
+# Fail loudly here instead so the real cause (the build) is obvious.
+- name: Fail clearly if the build did not produce a Ghostty binary
+  ansible.builtin.assert:
+    that:
+      - ghostty_binary.stat.exists
+    fail_msg: >-
+      No binary at {{ ghostty_install_prefix }}/bin/ghostty — the `zig build`
+      step did not install Ghostty, so there is nothing for the desktop entry to
+      launch. Re-run with -vvv and check the build output; on RHEL this is
+      usually a missing build dependency (gtk4-devel, libadwaita-devel,
+      blueprint-compiler) or a Zig/Ghostty version mismatch.
+    success_msg: "Ghostty binary present at {{ ghostty_install_prefix }}/bin/ghostty."
+
 - name: Restore the SELinux context on the Ghostty binary (RHEL family)
   ansible.builtin.command:
     cmd: "restorecon -v {{ ghostty_install_prefix }}/bin/ghostty"
@@ -159,6 +176,17 @@
       Name=New Window
       Exec={{ ghostty_install_prefix }}/bin/ghostty
   become: true
+
+# GNOME silently ignores an entry that fails validation, which also reads as
+# "installed but not visible". Surface any error at provision time. Warnings are
+# tolerated (rc 0); only hard errors (rc != 0) fail the build.
+- name: Validate the installed Ghostty desktop entry
+  ansible.builtin.command:
+    cmd: desktop-file-validate /usr/share/applications/com.mitchellh.ghostty.desktop
+  become: true
+  changed_when: false
+  register: ghostty_desktop_validate
+  failed_when: ghostty_desktop_validate.rc != 0
 
 # Mirror any icons the build installed under the prefix into /usr/share/icons so
 # they resolve even when /usr/local/share is outside XDG_DATA_DIRS. Best effort:

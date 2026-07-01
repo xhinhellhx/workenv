@@ -7,6 +7,11 @@ font-size = 12
 # Cursor: blinking block
 cursor-style = block
 cursor-style-blink = true
+# Ghostty's shell-integration "cursor" feature installs zsh zle widgets that
+# force a bar cursor at the prompt (overriding cursor-style and the
+# powerlevel10k precmd escape). Disable just that feature so the block cursor
+# sticks at the prompt; nvim/claude set their own shape and are unaffected.
+shell-integration-features = no-cursor
 
 # Colorscheme
 theme = Solarized Dark Patched
@@ -15,10 +20,11 @@ theme = Solarized Dark Patched
 # Bright Solarized base1 so the divider between panes is clearly visible
 # against the dark background.
 split-divider-color = #93a1a1
-# Dim unfocused splits so the focused pane stands out (lower = dimmer).
+# Dim unfocused splits to a 40% blackout so the focused pane stands out
+# (opacity 0.6 = 40% of the black fill blended over the unfocused pane).
 unfocused-split-opacity = 0.6
-# Color blended over unfocused splits (Solarized base03 background).
-unfocused-split-fill = #002b36
+# Pure black blended over unfocused splits for the blackout effect.
+unfocused-split-fill = #000000
 
 # Automatic updates (macOS / Sparkle; ignored on Linux builds)
 auto-update = download
