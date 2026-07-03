@@ -52,7 +52,7 @@ require('lazy').setup({
     opts = {
       ensure_installed = vim.list_extend(
         {
-          'gopls', 'pyright',
+          'gopls', 'basedpyright',
           'jsonls', 'yamlls', 'taplo',
           'golangci_lint_ls',  -- wraps the system golangci-lint as a diagnostics LSP
           -- ruff is installed via standalone binary (PEP 668 blocks pip on this system):
@@ -489,13 +489,15 @@ vim.lsp.config('golangci_lint_ls', {
   },
 })
 
-vim.lsp.config('pyright', {
-  cmd          = { 'pyright-langserver', '--stdio' },
+vim.lsp.config('basedpyright', {
+  cmd          = { 'basedpyright-langserver', '--stdio' },
   filetypes    = { 'python' },
   root_markers = { 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', '.git' },
   settings     = {
-    pyright = { disableOrganizeImports = true },  -- ruff handles imports
-    python  = { analysis = { ignore = { '*' } } }, -- ruff handles diagnostics
+    basedpyright = {
+      disableOrganizeImports = true,   -- ruff handles imports
+      analysis = { ignore = { '*' } }, -- ruff handles diagnostics
+    },
   },
 })
 
@@ -520,7 +522,7 @@ vim.lsp.config('taplo', {
   filetypes = { 'toml' },
 })
 
-vim.lsp.enable({ 'clangd', 'gopls', 'golangci_lint_ls', 'pyright', 'ruff', 'jsonls', 'yamlls', 'taplo' })
+vim.lsp.enable({ 'clangd', 'gopls', 'golangci_lint_ls', 'basedpyright', 'ruff', 'jsonls', 'yamlls', 'taplo' })
 
 vim.diagnostic.config({
   virtual_text     = { prefix = '●' },
