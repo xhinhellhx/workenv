@@ -17,8 +17,11 @@
 # Claude Code can likewise be skipped (no account, policy reasons, slimmer box).
 # Pass --skip-claude, or answer the interactive prompt.
 #
+# Codex (the OpenAI Codex CLI) can likewise be skipped for the same reasons.
+# Pass --skip-codex, or answer the interactive prompt.
+#
 # Picked variables (the container engine and whether to install GUI apps /
-# Claude Code) are remembered in a local state file (.provision.env,
+# Claude Code / Codex) are remembered in a local state file (.provision.env,
 # git-ignored), so later runs reuse them without prompting. Force a fresh pick
 # with --reconfigure.
 #
@@ -30,6 +33,7 @@
 #   CONTAINER_ENGINE=docker|podman   pick the container engine
 #   INSTALL_GUI=1|0 (yes/no)         install or skip GUI applications
 #   INSTALL_CLAUDE=1|0 (yes/no)      install or skip Claude Code
+#   INSTALL_CODEX=1|0 (yes/no)       install or skip Codex
 
 # Re-exec under bash if started with another shell (e.g. `zsh provision.sh`):
 # the interactive menu relies on bash's single-key `read -rsn1`.
@@ -116,6 +120,15 @@ CLAUDE_ROLES=(
 	claude_code
 )
 
+# Codex: the OpenAI Codex CLI, kept separate from COMMON_ROLES for the same
+# reasons as Claude Code (no account, policy reasons, slimmer box). It is
+# appended to the playbook only when Codex installation is enabled (see the
+# --skip-codex / INSTALL_CODEX / interactive prompt logic below). Like the
+# container engine, GUI, and Claude roles, keep this out of COMMON_ROLES.
+CODEX_ROLES=(
+	codex
+)
+
 # --- Colors (disabled when not a TTY or NO_COLOR is set) ----------------------
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
 	BOLD=$'\033[1m'
@@ -193,6 +206,9 @@ generate_playbook() {
 	if [[ "$install_claude" -eq 1 ]]; then
 		roles+=("${CLAUDE_ROLES[@]}")
 	fi
+	if [[ "$install_codex" -eq 1 ]]; then
+		roles+=("${CODEX_ROLES[@]}")
+	fi
 	roles+=("$engine")
 	{
 		printf -- '---\n'
@@ -200,6 +216,7 @@ generate_playbook() {
 		printf '# Container engine: %s\n' "$engine"
 		printf '# GUI applications: %s\n' "$([[ "$install_gui" -eq 1 ]] && echo installed || echo skipped)"
 		printf '# Claude Code: %s\n' "$([[ "$install_claude" -eq 1 ]] && echo installed || echo skipped)"
+		printf '# Codex: %s\n' "$([[ "$install_codex" -eq 1 ]] && echo installed || echo skipped)"
 		printf -- '- name: Configure work environment\n'
 		printf '  hosts: workstations\n'
 		printf '  gather_facts: true\n'
@@ -220,6 +237,7 @@ save_state() {
 		printf 'CONTAINER_ENGINE=%s\n' "$engine"
 		printf 'INSTALL_GUI=%s\n' "$install_gui"
 		printf 'INSTALL_CLAUDE=%s\n' "$install_claude"
+		printf 'INSTALL_CODEX=%s\n' "$install_codex"
 	} >"$STATE_FILE"
 }
 
@@ -234,6 +252,7 @@ reconfigure=0
 skip_galaxy=0
 skip_gui=0
 skip_claude=0
+skip_codex=0
 PLAYBOOK_ARGS=()
 for arg in "$@"; do
 	case "$arg" in
@@ -241,6 +260,7 @@ for arg in "$@"; do
 		--skip-galaxy) skip_galaxy=1 ;;
 		--skip-gui) skip_gui=1 ;;
 		--skip-claude) skip_claude=1 ;;
+		--skip-codex) skip_codex=1 ;;
 		*) PLAYBOOK_ARGS+=("$arg") ;;
 	esac
 done
@@ -250,6 +270,7 @@ done
 engine="${CONTAINER_ENGINE:-}"
 install_gui_env="${INSTALL_GUI:-}"
 install_claude_env="${INSTALL_CLAUDE:-}"
+install_codex_env="${INSTALL_CODEX:-}"
 
 # --- Pick the container engine ------------------------------------------------
 # Precedence: CONTAINER_ENGINE env var > saved state > interactive prompt.
@@ -356,6 +377,46 @@ case "$install_claude" in
 	*) die "Invalid INSTALL_CLAUDE='${install_claude}' (expected 1 or 0)" ;;
 esac
 info "Claude Code: ${BOLD}$([[ "$install_claude" -eq 1 ]] && echo install || echo skip)${RESET}"
+
+# --- Pick whether to install Codex ----------------------------------------------
+# CODEX_ROLES install Codex (the OpenAI Codex CLI), which isn't wanted on every
+# box. Precedence mirrors the Claude Code choice:
+#   --skip-codex > INSTALL_CODEX env var > saved state > interactive prompt (yes).
+install_codex=""
+
+if [[ "$skip_codex" -eq 1 ]]; then
+	install_codex=0
+elif [[ -n "$install_codex_env" ]]; then
+	case "${install_codex_env,,}" in
+		1 | y | yes | true | on) install_codex=1 ;;
+		0 | n | no | false | off) install_codex=0 ;;
+		*) die "Invalid INSTALL_CODEX='${install_codex_env}' (expected 1/0, yes/no, true/false)" ;;
+	esac
+fi
+
+# Fall back to the remembered pick (unless --reconfigure) before prompting.
+if [[ -z "$install_codex" && "$reconfigure" -eq 0 && -f "$STATE_FILE" ]]; then
+	# shellcheck source=/dev/null
+	source "$STATE_FILE"
+	install_codex="${INSTALL_CODEX:-}"
+	[[ -n "$install_codex" ]] && info "Reusing saved Codex choice (--reconfigure to change)."
+fi
+
+if [[ -z "$install_codex" ]]; then
+	menu "Install Codex (the OpenAI Codex CLI)?" \
+		"Yes — install Codex" \
+		"No  — skip Codex"
+	case "$MENU_CHOICE" in
+		0) install_codex=1 ;;
+		1) install_codex=0 ;;
+	esac
+fi
+
+case "$install_codex" in
+	0 | 1) ;;
+	*) die "Invalid INSTALL_CODEX='${install_codex}' (expected 1 or 0)" ;;
+esac
+info "Codex: ${BOLD}$([[ "$install_codex" -eq 1 ]] && echo install || echo skip)${RESET}"
 
 # Remember the picks for next time.
 save_state

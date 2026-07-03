@@ -1,0 +1,46 @@
+---
+# Install codex (OpenAI Codex CLI) from the official release archive.
+#   - macOS: release tarball -> codex_install_dir
+#   - Linux: release tarball (musl, static) -> codex_install_dir (Debian/Ubuntu, RHEL)
+
+- name: Check installed codex version
+  ansible.builtin.command: "{{ codex_install_dir }}/codex --version"
+  register: codex_installed
+  changed_when: false
+  failed_when: false
+
+- name: Install codex from the official release archive, version {{ codex_version }}
+  when: codex_version not in codex_installed.stdout
+  block:
+    - name: Create a temporary directory for the codex download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: codex
+      register: codex_tmp
+
+    - name: Download and extract the codex release archive (macOS)
+      ansible.builtin.unarchive:
+        src: "{{ codex_macos_download_url }}"
+        dest: "{{ codex_tmp.path }}"
+        remote_src: true
+      when: ansible_facts['system'] == "Darwin"
+
+    - name: Download and extract the codex release archive (Linux)
+      ansible.builtin.unarchive:
+        src: "{{ codex_linux_download_url }}"
+        dest: "{{ codex_tmp.path }}"
+        remote_src: true
+      when: ansible_facts['system'] == "Linux"
+
+    - name: Install the codex binary
+      ansible.builtin.shell: |
+        set -eu
+        bin="$(find '{{ codex_tmp.path }}' -type f -name 'codex-*' -print -quit)"
+        install -m 0755 "$bin" '{{ codex_install_dir }}/codex'
+      become: true
+      changed_when: true
+
+    - name: Remove the temporary directory
+      ansible.builtin.file:
+        path: "{{ codex_tmp.path }}"
+        state: absent
