@@ -27,6 +27,10 @@ base64-encoded in `config.json`: the role installs `docker-credential-helper`
 (which ships `docker-credential-osxkeychain`) and sets `credsStore` to
 `{{ docker_creds_store }}` (default `osxkeychain`) in `~/.docker/config.json`.
 
+The default Colima startup mounts `/Volumes` writable (`/Volumes:w`) so Docker
+containers can bind-mount external macOS volumes. Override
+`docker_colima_mounts` to change the Colima `--mount` arguments.
+
 The Docker daemon is launched at start:
 
 - **Linux**: the `docker` systemd service is enabled (`enabled: true`).
@@ -48,6 +52,7 @@ ensured by the `homebrew` role dependency.
 | `docker_brew_formulae`| `[docker, docker-compose, docker-buildx, colima]` | Homebrew formulae installed (macOS). |
 | `docker_cli_plugins_dir` | `{{ homebrew_prefix }}/lib/docker/cli-plugins` | Plugins dir added to `cliPluginsExtraDirs` in `~/.docker/config.json` (macOS). |
 | `docker_creds_store`  | `osxkeychain`             | `credsStore` written to `~/.docker/config.json` (macOS); stores registry creds in the Keychain. |
+| `docker_colima_mounts`| `[/Volumes:w]`            | Colima `--mount` values used when starting the macOS Docker VM. |
 | `docker_users`        | `[ {{ ansible_facts['user_id'] }} ]` | Users added to the `docker` group (Linux). |
 | `docker_install_url`  | `https://get.docker.com`  | Linux convenience-script URL.               |
 

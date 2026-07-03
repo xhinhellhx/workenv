@@ -28,6 +28,11 @@ docker_cli_plugins_dir: "{{ homebrew_prefix }}/lib/docker/cli-plugins"
 # Requires the docker-credential-helper formula above to be on PATH.
 docker_creds_store: "osxkeychain"
 
+# macOS: Colima mounts passed during startup. Colima persists these into the
+# default profile because `colima start` enables `--save-config` by default.
+docker_colima_mounts:
+  - /Volumes:w
+
 # Linux: users added to the `docker` group (to run docker without sudo).
 docker_users:
   - "{{ ansible_facts['user_id'] }}"

@@ -113,6 +113,10 @@
               <array>
                   <string>{{ homebrew_prefix }}/bin/colima</string>
                   <string>start</string>
+          {% for mount in docker_colima_mounts %}
+                  <string>--mount</string>
+                  <string>{{ mount }}</string>
+          {% endfor %}
               </array>
               <key>EnvironmentVariables</key>
               <dict>
@@ -131,7 +135,13 @@
       failed_when: false
 
     - name: Start the Colima VM now
-      ansible.builtin.command: "{{ homebrew_prefix }}/bin/colima start"
+      ansible.builtin.command: >-
+        {{ homebrew_prefix }}/bin/colima start
+        {{
+          docker_colima_mounts
+          | map('regex_replace', '^', '--mount=')
+          | join(' ')
+        }}
       when: colima_status.rc != 0
       changed_when: true
 
