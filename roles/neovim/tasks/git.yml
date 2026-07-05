@@ -1,0 +1,11 @@
+---
+# Configure git to use Neovim after the editor is installed.
+
+- name: Configure git to use Neovim
+  community.general.git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop: "{{ neovim_git_settings }}"
+  loop_control:
+    label: "{{ item.name }}"

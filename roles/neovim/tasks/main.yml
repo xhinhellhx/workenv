@@ -11,3 +11,6 @@
 
 - name: Deploy Neovim configuration
   ansible.builtin.import_tasks: config.yml
+
+- name: Configure git integration
+  ansible.builtin.import_tasks: git.yml
