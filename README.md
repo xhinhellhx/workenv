@@ -57,6 +57,9 @@ CONTAINER_ENGINE=podman INSTALL_GUI=no INSTALL_CLAUDE=no INSTALL_CODEX=no ./prov
 ./provision.sh --skip-galaxy
 ```
 
+Ansible prompts for the sudo/become password when a selected role needs
+privilege escalation; passing `-K` is not required.
+
 Your picks are remembered in `.provision.env` (git-ignored), so later runs skip
 the prompts. Precedence for the engine is `CONTAINER_ENGINE` env var > saved
 state > prompt; for GUI apps it is `--skip-gui` > `INSTALL_GUI` env var > saved
