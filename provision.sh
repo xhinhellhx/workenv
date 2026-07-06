@@ -71,6 +71,7 @@ COMMON_ROLES=(
 	git_config
 	neovim
 	htop
+	rg
 	pre_commit
 	shellcheck
 	shfmt

@@ -1,0 +1,25 @@
+---
+# Install ripgrep. macOS via Homebrew, Linux via the package manager.
+
+- name: Install ripgrep (macOS, Homebrew)
+  community.general.homebrew:
+    name: ripgrep
+    state: present
+    path: "{{ homebrew_prefix }}/bin"
+  when: ansible_facts['system'] == "Darwin"
+
+- name: Install ripgrep (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: ripgrep
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install ripgrep (RHEL family)
+  ansible.builtin.dnf:
+    name: ripgrep
+    state: present
+  become: true
+  when: ansible_facts['os_family'] == "RedHat"
