@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: bubblewrap
+  author: xhinhellhx
+  description: Installs bubblewrap, a Linux namespaces sandboxing tool
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+    - name: Ubuntu
+    - name: EL
+dependencies: []

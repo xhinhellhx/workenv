@@ -72,6 +72,7 @@ COMMON_ROLES=(
 	neovim
 	htop
 	rg
+	bubblewrap
 	pre_commit
 	shellcheck
 	shfmt
