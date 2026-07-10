@@ -14,7 +14,7 @@
     "enabled": true
   },
   "ansible-galaxy": {
-    "managerFilePatterns": ["/(^|/)requirements\\.ya?ml$/"]
+    "fileMatch": ["/(^|/)requirements\\.ya?ml$/"]
   },
   "packageRules": [
     {
@@ -33,7 +33,7 @@
     {
       "customType": "regex",
       "description": "Bump *_version vars in role defaults annotated with a `# renovate:` comment.",
-      "managerFilePatterns": ["/^roles/.+/defaults/main\\.ya?ml$/"],
+      "fileMatch": ["/^roles/.+/defaults/main\\.ya?ml$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: packageName=(?<packageName>\\S+))?(?: registryUrl=(?<registryUrl>\\S+))?(?: versioning=(?<versioning>\\S+))?(?: extractVersion=(?<extractVersion>\\S+))?\\s*\\n\\s*\\w+_version:\\s*\"(?<currentValue>[^\"]+)\""
       ],
