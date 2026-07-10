@@ -8,6 +8,20 @@
     path: "{{ homebrew_prefix }}/bin"
   when: ansible_facts['system'] == "Darwin"
 
+- name: Remove ripgrep from quarantine (macOS)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    rg_prefix="$({{ homebrew_prefix }}/bin/brew --prefix ripgrep)"
+    if xattr -lr "$rg_prefix" 2>/dev/null | grep -q "com.apple.quarantine"; then
+      xattr -dr com.apple.quarantine "$rg_prefix"
+      printf changed
+    fi
+  args:
+    executable: /bin/bash
+  register: rg_quarantine
+  changed_when: rg_quarantine.stdout == "changed"
+  when: ansible_facts['system'] == "Darwin"
+
 - name: Install ripgrep (Debian/Ubuntu)
   ansible.builtin.apt:
     name: ripgrep
