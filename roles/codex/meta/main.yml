@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: codex
   author: xhinhellhx
-  description: Installs codex (the OpenAI Codex CLI) from the official release binaries
+  description: Installs codex (the OpenAI Codex CLI)
   license: MIT
   min_ansible_version: "2.14"
   platforms:
@@ -10,4 +10,5 @@ galaxy_info:
     - name: Debian
     - name: Ubuntu
     - name: EL
-dependencies: []
+dependencies:
+  - role: homebrew
