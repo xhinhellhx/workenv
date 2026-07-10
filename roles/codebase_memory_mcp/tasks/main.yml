@@ -1,0 +1,36 @@
+---
+# Install codebase-memory-mcp from the official release tarball. The binary's
+# `install` subcommand copies itself into ~/.local/bin and registers the MCP
+# server with every coding agent it detects (Claude Code, Codex, VS Code, …),
+# which is why provision.sh runs this role after claude_code and codex.
+
+- name: Check installed codebase-memory-mcp version
+  ansible.builtin.command: "{{ codebase_memory_mcp_bin }} --version"
+  register: codebase_memory_mcp_installed
+  changed_when: false
+  failed_when: false
+
+- name: Install codebase-memory-mcp from release archive
+  when: codebase_memory_mcp_version not in codebase_memory_mcp_installed.stdout
+  block:
+    - name: Create a temporary directory for the codebase-memory-mcp download
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: codebase-memory-mcp
+      register: codebase_memory_mcp_tmp
+
+    - name: Download and extract the codebase-memory-mcp release archive
+      ansible.builtin.unarchive:
+        src: "{{ codebase_memory_mcp_download_url }}"
+        dest: "{{ codebase_memory_mcp_tmp.path }}"
+        remote_src: true
+
+    - name: Install the binary and register the MCP server with detected agents
+      ansible.builtin.command:
+        cmd: "{{ codebase_memory_mcp_tmp.path }}/codebase-memory-mcp install"
+      changed_when: true
+
+    - name: Remove the temporary directory
+      ansible.builtin.file:
+        path: "{{ codebase_memory_mcp_tmp.path }}"
+        state: absent

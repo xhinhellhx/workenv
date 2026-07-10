@@ -1,0 +1,25 @@
+---
+# Default variables for the codebase_memory_mcp role.
+
+# codebase-memory-mcp release to install
+# (https://github.com/DeusData/codebase-memory-mcp/releases).
+# yamllint disable rule:line-length
+# renovate: datasource=github-releases depName=DeusData/codebase-memory-mcp extractVersion=^v(?<version>.+)$
+codebase_memory_mcp_version: "0.9.0"
+
+# Install the `ui` build, which embeds the 3D graph-visualization frontend
+# (served with `codebase-memory-mcp --ui=true --port=9749`). Set to false for
+# the lean, headless server build.
+codebase_memory_mcp_ui: true
+
+# The `install` subcommand copies the binary here (per-user, no root required)
+# and registers the MCP server with every detected coding agent.
+codebase_memory_mcp_bin: "{{ ansible_facts['env'].HOME }}/.local/bin/codebase-memory-mcp"
+
+# Download details. Release assets are named
+# codebase-memory-mcp[-ui]-{darwin|linux}-{amd64|arm64}.tar.gz.
+codebase_memory_mcp_variant: "{{ 'codebase-memory-mcp-ui' if codebase_memory_mcp_ui else 'codebase-memory-mcp' }}"
+codebase_memory_mcp_os: "{{ ansible_facts['system'] | lower }}"
+codebase_memory_mcp_arch: "{{ 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64'] else 'amd64' }}"
+codebase_memory_mcp_download_url: "https://github.com/DeusData/codebase-memory-mcp/releases/download/v{{ codebase_memory_mcp_version }}/{{ codebase_memory_mcp_variant }}-{{ codebase_memory_mcp_os }}-{{ codebase_memory_mcp_arch }}.tar.gz"
+# yamllint enable rule:line-length

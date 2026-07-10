@@ -131,6 +131,15 @@ CODEX_ROLES=(
 	codex
 )
 
+# codebase-memory-mcp: an MCP server that builds a knowledge graph of the
+# codebase for coding agents. Installed on every workstation, but kept out of
+# COMMON_ROLES because its `install` subcommand registers the MCP server with
+# every coding agent it detects — it must run *after* the claude_code and
+# codex roles so those agents exist by the time registration runs.
+MCP_ROLES=(
+	codebase_memory_mcp
+)
+
 # --- Colors (disabled when not a TTY or NO_COLOR is set) ----------------------
 if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
 	BOLD=$'\033[1m'
@@ -198,7 +207,8 @@ menu() {
 # --- Playbook generation ------------------------------------------------------
 # Usage: generate_playbook <engine> <output-file>
 # Writes the full top-level playbook: every common role, the GUI roles (unless
-# the user opted out via $install_gui), then the chosen container engine.
+# the user opted out via $install_gui), the MCP roles (after claude_code and
+# codex, so agent registration finds them), then the chosen container engine.
 generate_playbook() {
 	local engine="$1" out="$2" role
 	local roles=("${COMMON_ROLES[@]}")
@@ -211,6 +221,7 @@ generate_playbook() {
 	if [[ "$install_codex" -eq 1 ]]; then
 		roles+=("${CODEX_ROLES[@]}")
 	fi
+	roles+=("${MCP_ROLES[@]}")
 	roles+=("$engine")
 	{
 		printf -- '---\n'
