@@ -6,9 +6,8 @@ collections:
   - name: community.general
     version: ">=8.0.0,<11.0.0"
 
-  # ansible.posix is pulled in transitively by several builtins; pin it so
-  # behaviour is reproducible across control nodes.
+  # ansible.posix provides sysctl; 2.2.0 fixes deprecated Ansible imports.
   - name: ansible.posix
-    version: ">=1.5.0,<2.0.0"
+    version: ">=2.2.0,<3.0.0"
 
 roles: []

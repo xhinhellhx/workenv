@@ -1,0 +1,78 @@
+---
+# The upstream installer resolves releases, detects the platform, verifies
+# downloads, and manages the complete standalone package and command symlinks.
+
+- name: Install codex installer prerequisites
+  ansible.builtin.package:
+    name:
+      - ca-certificates
+      - curl
+      - tar
+    state: present
+  become: true
+
+- name: Inspect the existing codex command
+  ansible.builtin.stat:
+    path: "{{ codex_install_dir }}/codex"
+    follow: false
+  register: codex_binary_before
+
+- name: Check installed codex version
+  ansible.builtin.command:
+    argv:
+      - "{{ codex_install_dir }}/codex"
+      - --version
+  register: codex_version_before
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Install or update the standalone codex package
+  when: not ansible_check_mode
+  block:
+    - name: Create a temporary directory for the codex installer
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: codex
+      register: codex_tmp
+      changed_when: false
+
+    - name: Download the official codex installer
+      ansible.builtin.get_url:
+        url: "{{ codex_install_url }}"
+        dest: "{{ codex_tmp.path }}/install.sh"
+        mode: "0600"
+      changed_when: false
+
+    # Run every time so "latest" upgrades existing installations too.
+    # The verification task below reports version changes and migrations.
+    - name: Run the codex installer without prompts
+      ansible.builtin.command:
+        argv:
+          - /bin/sh
+          - "{{ codex_tmp.path }}/install.sh"
+          - --release
+          - "{{ codex_version }}"
+      environment:
+        CODEX_INSTALL_DIR: "{{ codex_install_dir }}"
+        CODEX_NON_INTERACTIVE: "1"
+      changed_when: false
+
+    - name: Verify the installed codex version
+      ansible.builtin.command:
+        argv:
+          - "{{ codex_install_dir }}/codex"
+          - --version
+      register: codex_version_after
+      changed_when: >-
+        codex_version_before.rc != 0 or
+        codex_version_after.stdout != codex_version_before.stdout or
+        not (codex_binary_before.stat.islnk | default(false))
+
+  always:
+    - name: Remove the temporary codex installer directory
+      ansible.builtin.file:
+        path: "{{ codex_tmp.path }}"
+        state: absent
+      when: codex_tmp.path is defined
+      changed_when: false
