@@ -18,8 +18,8 @@ docker_brew_formulae:
 # macOS: directory registered in ~/.docker/config.json's cliPluginsExtraDirs so
 # the docker CLI discovers Homebrew-installed plugins (`docker compose`,
 # `docker buildx`, ...). Every Homebrew docker plugin formula drops its binary
-# here. On Linux the get.docker.com script installs the equivalent *-plugin
-# packages system-wide, so this is macOS-only.
+# here. On Linux the RPM repository or get.docker.com script installs the
+# equivalent *-plugin packages system-wide, so this is macOS-only.
 docker_cli_plugins_dir: "{{ homebrew_prefix }}/lib/docker/cli-plugins"
 
 # macOS: credential store written to ~/.docker/config.json's `credsStore`. With
@@ -37,5 +37,15 @@ docker_colima_mounts:
 docker_users:
   - "{{ ansible_facts['user_id'] }}"
 
-# Linux installer (official convenience script; detects the distro).
+# RHEL family: Rocky/AlmaLinux use Docker's CentOS repository; RHEL uses its own.
+docker_rpm_repository_url: >-
+  https://download.docker.com/linux/{{ 'rhel' if ansible_facts['distribution'] == 'RedHat' else 'centos' }}
+docker_rpm_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+# Other Linux distributions: official convenience script.
 docker_install_url: "https://get.docker.com"

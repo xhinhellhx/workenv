@@ -2,8 +2,8 @@
 # Install Docker.
 #   - macOS: Docker CLI + Colima runtime via Homebrew formulae (no Docker
 #     Desktop — casks need an auth prompt that breaks the non-interactive run).
-#   - Linux: official convenience script, then enable the daemon and grant
-#     group access (Debian/Ubuntu and RHEL family).
+#   - Linux: Docker RPM repository on RHEL family (including Rocky Linux),
+#     convenience script elsewhere; enable the daemon and grant group access.
 
 - name: Install and auto-start Docker via Colima (macOS, no Docker Desktop)
   when: ansible_facts['system'] == "Darwin"
@@ -148,29 +148,39 @@
 - name: Install Docker (Linux)
   when: ansible_facts['system'] == "Linux"
   block:
+    - name: Install Docker from its RPM repository (RHEL family)
+      ansible.builtin.include_tasks: install-redhat.yml
+      when: ansible_facts['os_family'] == "RedHat"
+
     - name: Check whether Docker is installed
       ansible.builtin.command: docker --version
       register: docker_installed
       changed_when: false
       failed_when: false
+      when: ansible_facts['os_family'] != "RedHat"
 
     - name: Download Docker install script
       ansible.builtin.get_url:
         url: "{{ docker_install_url }}"
         dest: /tmp/get-docker.sh
         mode: "0755"
-      when: docker_installed.rc != 0
+      when:
+        - ansible_facts['os_family'] != "RedHat"
+        - docker_installed.rc != 0
 
     - name: Run Docker install script
       ansible.builtin.command: /bin/sh /tmp/get-docker.sh
       become: true
-      when: docker_installed.rc != 0
+      when:
+        - ansible_facts['os_family'] != "RedHat"
+        - docker_installed.rc != 0
       changed_when: true
 
     - name: Remove Docker install script
       ansible.builtin.file:
         path: /tmp/get-docker.sh
         state: absent
+      when: ansible_facts['os_family'] != "RedHat"
 
     - name: Enable and start the Docker service
       ansible.builtin.systemd:

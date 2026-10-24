@@ -1,0 +1,23 @@
+---
+# Rocky/AlmaLinux use Docker's CentOS packages. Use the major EL version even
+# when distribution_version includes a minor release (for example, 9.5).
+- name: Configure the Docker CE stable RPM repository
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    file: docker-ce
+    baseurl: >-
+      {{ docker_rpm_repository_url }}/{{ ansible_facts['distribution_major_version'] }}/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: "{{ docker_rpm_repository_url }}/gpg"
+  become: true
+
+# Check every package, rather than relying on `docker --version`: an existing
+# CLI (or podman-docker wrapper) does not mean the Engine/plugins are installed.
+- name: Install Docker Engine, CLI, containerd, Buildx and Compose
+  ansible.builtin.dnf:
+    name: "{{ docker_rpm_packages }}"
+    state: present
+    update_cache: true
+  become: true
