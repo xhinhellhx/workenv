@@ -1,0 +1,8 @@
+---
+# Install wezterm on macOS via Homebrew cask.
+
+- name: Install wezterm
+  community.general.homebrew_cask:
+    name: "{{ wezterm_brew_cask }}"
+    state: present
+    path: "{{ homebrew_prefix }}/bin"

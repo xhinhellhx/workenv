@@ -1,0 +1,72 @@
+---
+# Make Ghostty the default terminal emulator on Linux.
+#
+# There is no single cross-desktop standard for "the default terminal", so the
+# role sets every mechanism that applies to the host:
+#   - Debian/Ubuntu: the `x-terminal-emulator` alternative, which Debian's
+#     `sensible-terminal` and many apps invoke to find the system terminal.
+#   - $TERMINAL: honoured by TUI launchers (ranger, i3-sensible-terminal, ...)
+#     and by the emerging `xdg-terminal-exec` spec — this is the main lever on
+#     RHEL/GNOME, which has no `x-terminal-emulator`.
+#   - GNOME: the legacy default-applications dconf key (best-effort — modern
+#     GNOME has deprecated it, but older versions and some apps still read it).
+#
+# macOS has no supported way to set a system default terminal, so this file is
+# imported only on Linux (see tasks/main.yml).
+
+# --- Debian/Ubuntu: x-terminal-emulator alternative --------------------------
+- name: Register Ghostty as the x-terminal-emulator alternative (Debian/Ubuntu)
+  community.general.alternatives:
+    name: x-terminal-emulator
+    link: /usr/bin/x-terminal-emulator
+    path: "{{ ghostty_bin }}"
+    # Higher than the distro terminals (gnome-terminal/xterm sit at 30-50) so
+    # Ghostty wins even in auto mode.
+    priority: 100
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+
+# --- All Linux: $TERMINAL for login shells -----------------------------------
+# /etc/profile.d is sourced by login shells (zsh reads it via the distro's
+# /etc/zprofile), so this exports TERMINAL system-wide for every user.
+- name: Set Ghostty as the default $TERMINAL for login shells
+  ansible.builtin.copy:
+    dest: /etc/profile.d/ghostty-default-terminal.sh
+    mode: "0644"
+    content: |
+      # Managed by the workenv ghostty role.
+      # Default terminal for TUI launchers and xdg-terminal-exec.
+      export TERMINAL={{ ghostty_bin }}
+  become: true
+
+# --- GNOME: legacy default-applications key (best-effort) ---------------------
+# Only attempt this where the GNOME schema is actually installed; on a headless
+# or non-GNOME host gsettings/the schema is absent and we simply skip. Reading
+# the schema needs no D-Bus session, so the probe is safe in a provisioning run.
+- name: Check whether the GNOME default-applications terminal schema exists
+  ansible.builtin.command:
+    cmd: gsettings list-keys org.gnome.desktop.default-applications.terminal
+  register: ghostty_gnome_term_schema
+  changed_when: false
+  failed_when: false
+
+# Writing dconf needs a D-Bus session; the dconf module spins up one when none
+# is present. Still best-effort (deprecated key), so do not fail the run on it.
+- name: Set Ghostty as the GNOME default terminal (best-effort)
+  when: ghostty_gnome_term_schema.rc == 0
+  block:
+    - name: Set the GNOME default terminal exec
+      community.general.dconf:
+        key: /org/gnome/desktop/default-applications/terminal/exec
+        value: "'{{ ghostty_bin }}'"
+        state: present
+      failed_when: false
+
+    # Ghostty runs a one-off command with `-e`, so apps that launch a command in
+    # the configured terminal (Exec + exec-arg) get the right flag.
+    - name: Set the GNOME default terminal exec-arg
+      community.general.dconf:
+        key: /org/gnome/desktop/default-applications/terminal/exec-arg
+        value: "'-e'"
+        state: present
+      failed_when: false

@@ -1,0 +1,14 @@
+---
+# Deploy the wezterm configuration.
+
+- name: Ensure wezterm config directory exists
+  ansible.builtin.file:
+    path: "{{ wezterm_config_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Deploy wezterm configuration
+  ansible.builtin.copy:
+    src: config/wezterm.lua
+    dest: "{{ wezterm_config_path }}"
+    mode: "0644"

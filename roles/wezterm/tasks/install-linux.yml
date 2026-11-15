@@ -1,0 +1,61 @@
+---
+- name: Fail on unsupported Linux distribution
+  ansible.builtin.fail:
+    msg: >-
+      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The ghostty role
+      installs the snap only on Debian/Ubuntu and RHEL-family systems.
+  when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
+
+- name: Update APT package cache and install Flatpak
+  ansible.builtin.apt:
+    name: "{{ wezterm_flatpak_package }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install Flatpak
+  ansible.builtin.dnf:
+    name: "{{ wezterm_flatpak_package }}"
+    state: present
+    update_cache: true
+  become: true
+  when:
+    - ansible_facts['os_family'] == "RedHat"
+
+- name: Check whether Flathub is configured
+  ansible.builtin.command:
+    cmd: flatpak remotes --system --columns=name
+  register: wezterm_flatpak_remotes
+  changed_when: false
+
+- name: Add Flathub repository
+  ansible.builtin.command:
+    cmd: >
+      flatpak remote-add
+      --system
+      --if-not-exists
+      {{ wezterm_flathub_name }}
+      {{ wezterm_flathub_url }}
+  changed_when: wezterm_flathub_name not in wezterm_flatpak_remotes.stdout_lines
+  when: wezterm_flathub_name not in wezterm_flatpak_remotes.stdout_lines
+
+- name: Check whether WezTerm is installed
+  ansible.builtin.command:
+    cmd: flatpak info --system {{ wezterm_flatpak_app_id }}
+  register: wezterm_flatpak_info
+  changed_when: false
+  failed_when: false
+
+- name: Install WezTerm
+  ansible.builtin.command:
+    cmd: >
+      flatpak install
+      --system
+      --noninteractive
+      --assumeyes
+      {{ wezterm_flathub_name }}
+      {{ wezterm_flatpak_app_id }}
+  changed_when: wezterm_flatpak_info.rc != 0
+  when: wezterm_flatpak_info.rc != 0

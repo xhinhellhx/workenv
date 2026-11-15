@@ -1,0 +1,8 @@
+---
+wezterm_flatpak_package: flatpak
+wezterm_flatpak_scope: system
+
+wezterm_flathub_name: flathub
+wezterm_flathub_url: https://flathub.org/repo/flathub.flatpakrepo
+
+wezterm_flatpak_app_id: org.wezfurlong.wezterm

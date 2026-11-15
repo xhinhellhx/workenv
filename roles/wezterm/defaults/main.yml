@@ -1,0 +1,13 @@
+---
+# Default variables for the wezterm role.
+
+# --- Configuration ------------------------------------------------------------
+# wezterm reads its config from $XDG_CONFIG_HOME/wezterm/config on both
+# macOS and Linux.
+wezterm_config_dir: "{{ xdg_config_home | default(ansible_facts['env'].HOME ~ '/.config') }}/wezterm"
+wezterm_config_path: "{{ wezterm_config_dir }}/wezterm.lua"
+
+# --- macOS (Homebrew) ---------------------------------------------------------
+# wezterm is distributed as a Homebrew cask.
+wezterm_brew_cask: "wezterm"
+wezterm_flatpak_name: "org.wezfurlong.wezterm"
