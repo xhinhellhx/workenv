@@ -60,3 +60,10 @@
       {{ wezterm_flatpak_app_id }}
   changed_when: wezterm_flatpak_info.rc != 0
   when: wezterm_flatpak_info.rc != 0
+
+- name: Override WezTerm backend
+  ansible.builtin.command:
+    cmd: >
+      flatpak override --system --socket=x11 --nosocket=wayland {{ wezterm_flatpak_app_id }}
+  changed_when: wezterm_flatpak_info.rc != 0
+  when: wezterm_flatpak_info.rc != 0
