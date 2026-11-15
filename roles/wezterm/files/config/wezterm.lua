@@ -39,7 +39,7 @@ config.cursor_blink_rate = 500
 -- The supplied Ghostty theme name ("Solarized Dark Patched") does not include
 -- its actual palette, so use WezTerm's built-in Solarized Dark palette as the
 -- closest portable starting point. The split divider is overridden below.
-config.color_scheme = 'Solarized Dark'
+config.color_scheme = 'Solarized Dark - Patched'
 
 config.colors = {
   split = '#93a1a1',
