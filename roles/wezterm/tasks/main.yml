@@ -1,21 +1,15 @@
 ---
-# Install Ghostty.
+# Install wezterm.
 #   - macOS: Homebrew cask (Homebrew ensured by the `homebrew` role dependency)
 #   - Linux: Snap Store, classic confinement (Debian/Ubuntu and RHEL family)
 
-- name: Install Ghostty on macOS (Homebrew)
+- name: Install wezterm on macOS (Homebrew)
   ansible.builtin.import_tasks: install-macos.yml
   when: ansible_facts['system'] == "Darwin"
 
-- name: Install Ghostty on Linux (Snap Store)
+- name: Install wezterm on Linux (Snap Store)
   ansible.builtin.import_tasks: install-linux.yml
   when: ansible_facts['system'] == "Linux"
 
-- name: Deploy Ghostty configuration
+- name: Deploy wezterm configuration
   ansible.builtin.import_tasks: config.yml
-
-# Make Ghostty the default terminal. Linux only — macOS has no supported
-# mechanism to set a system default terminal application.
-- name: Set Ghostty as the default terminal (Linux)
-  ansible.builtin.import_tasks: default-terminal.yml
-  when: ansible_facts['system'] == "Linux"

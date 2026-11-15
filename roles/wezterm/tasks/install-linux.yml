@@ -2,7 +2,7 @@
 - name: Fail on unsupported Linux distribution
   ansible.builtin.fail:
     msg: >-
-      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The ghostty role
+      Unsupported OS family '{{ ansible_facts['os_family'] }}'. The wezterm role
       installs the snap only on Debian/Ubuntu and RHEL-family systems.
   when: ansible_facts['os_family'] not in ["Debian", "RedHat"]
 
@@ -38,6 +38,7 @@
       --if-not-exists
       {{ wezterm_flathub_name }}
       {{ wezterm_flathub_url }}
+  become: true
   changed_when: wezterm_flathub_name not in wezterm_flatpak_remotes.stdout_lines
   when: wezterm_flathub_name not in wezterm_flatpak_remotes.stdout_lines
 
