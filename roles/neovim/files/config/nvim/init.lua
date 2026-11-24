@@ -444,6 +444,20 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
+vim.api.nvim_create_autocmd('BufWritePre', {
+  pattern = '*.go',
+  callback = function(args)
+    vim.lsp.buf.format({
+      bufnr = args.buf,
+      async = false,
+      timeout_ms = 3000,
+      filter = function(client)
+        return client.name == 'gopls'
+      end,
+    })
+  end,
+})
+
 vim.api.nvim_create_autocmd('FileType', {
   pattern  = { 'c', 'cpp', 'objc', 'objcpp' },
   callback = function()
