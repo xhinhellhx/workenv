@@ -6,7 +6,6 @@
 neovim_build_deps_debian:
   - build-essential
   - cmake
-  - ninja-build
   - gettext
   - libtool
   - libtool-bin
@@ -32,7 +31,6 @@ neovim_build_deps_redhat:
   - gcc-c++
   - make
   - cmake
-  - ninja-build
   - gettext
   - libtool
   - autoconf
