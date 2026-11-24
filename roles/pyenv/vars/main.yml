@@ -37,5 +37,4 @@ pyenv_build_deps_redhat:
   - xz
   - xz-devel
   - libuuid-devel
-  - gdbm-devel
   - ncurses-devel
