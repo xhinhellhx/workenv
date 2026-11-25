@@ -19,6 +19,7 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 vim.g.mapleader      = ' '
 vim.g.maplocalleader = ' '
+vim.g.AutoPairsMapCR = 0
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 1. BOOTSTRAP: lazy.nvim
@@ -73,19 +74,42 @@ require('lazy').setup({
   {
     'saghen/blink.cmp',
     version = '*',
-    lazy    = false,
-    opts    = {
-      keymap     = { preset = 'default' },
-      appearance = { nerd_font_variant = 'mono' },
-      sources    = {
+    lazy = false,
+    opts = {
+      keymap = {
+        preset = 'enter',
+        ['<CR>'] = {
+          'accept',
+          'fallback',
+        },
+      },
+      appearance = {
+        nerd_font_variant = 'mono',
+      },
+      sources = {
         default = { 'lsp', 'path', 'snippets', 'buffer' },
       },
-      snippets   = { preset = 'default' },
-      completion = {
-        documentation = { auto_show = true, auto_show_delay_ms = 200 },
-        menu          = { border = 'rounded' },
+      snippets = {
+        preset = 'default',
       },
-      signature  = { enabled = true },
+      completion = {
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 200,
+        },
+        menu = {
+          border = 'rounded',
+        },
+        list = {
+          selection = {
+            preselect = false,
+            auto_insert = true,
+          },
+        },
+      },
+      signature = {
+        enabled = true,
+      },
     },
   },
 
@@ -444,17 +468,60 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 
+local function golangci_format(bufnr)
+  local filename = vim.api.nvim_buf_get_name(bufnr)
+
+  local root = vim.fs.root(bufnr, {
+    'go.work',
+    'go.mod',
+    '.git',
+  })
+
+  if not root then
+    return
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(
+    bufnr, 0, -1, false
+  )
+
+  local input = table.concat(lines, '\n') .. '\n'
+
+  local result = vim.system({
+    'golangci-lint',
+    'fmt',
+    '--stdin',
+  }, {
+    stdin = input,
+    cwd = root,
+    text = true,
+  }):wait()
+
+  if result.code ~= 0 then
+    vim.notify(
+      result.stderr or 'golangci-lint formatting failed',
+      vim.log.levels.ERROR
+    )
+    return
+  end
+
+  local formatted = vim.split(result.stdout, '\n', {
+    plain = true,
+  })
+
+  if formatted[#formatted] == '' then
+    table.remove(formatted)
+  end
+
+  vim.api.nvim_buf_set_lines(
+    bufnr, 0, -1, false, formatted
+  )
+end
+
 vim.api.nvim_create_autocmd('BufWritePre', {
   pattern = '*.go',
   callback = function(args)
-    vim.lsp.buf.format({
-      bufnr = args.buf,
-      async = false,
-      timeout_ms = 3000,
-      filter = function(client)
-        return client.name == 'gopls'
-      end,
-    })
+    golangci_format(args.buf)
   end,
 })
 
@@ -478,15 +545,25 @@ vim.lsp.config('clangd', {
   root_markers = { 'compile_commands.json', 'compile_flags.txt', '.git' },
 })
 
+
 vim.lsp.config('gopls', {
   cmd          = { 'gopls' },
   filetypes    = { 'go', 'gomod', 'gowork', 'gotmpl' },
   root_markers = { 'go.work', 'go.mod', '.git' },
   settings     = {
     gopls = {
-      analyses    = { unusedparams = true },
+      -- Include packages that are not imported yet.
+      completeUnimported = true,
+
+      -- Enable additional completion information.
+      usePlaceholders = true,
+
+      analyses = {
+        unusedparams = true,
+      },
+
       staticcheck = true,
-      gofumpt     = true,
+      gofumpt = true,
     },
   },
 })
