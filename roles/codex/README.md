@@ -105,6 +105,7 @@ Codex can select it automatically when the task matches its description.
 | Workflow | Skills |
 | --- | --- |
 | API contracts and interfaces | `google-rest-api-design`, `ui-design` |
+| Defensive design and review | `security-design`, `security-review` |
 | Language reviews | `go-review`, `c-cpp-review`, `typescript-react-review` |
 | Development tools | `golangci-lint`, `conventional-commits` |
 
