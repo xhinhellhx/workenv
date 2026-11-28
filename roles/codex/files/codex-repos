@@ -59,7 +59,7 @@ Keep queries bounded and index only the checkouts relevant to the task.
 For independent, tightly scoped read-only lookups, delegate to workenv-scout
 when available and when the lookup would otherwise take several tool calls.
 Handle implementation, ambiguous findings, and final verification in this
-session.
+session. Use the Elephant–Goldfish skill when the user requests fresh review.
 EOF
 )
 

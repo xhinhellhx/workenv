@@ -1,0 +1,33 @@
+---
+- name: List Codex plugin marketplaces
+  ansible.builtin.command:
+    argv: ["{{ codex_egm_cli }}", plugin, marketplace, list, --json]
+  register: codex_marketplaces
+  changed_when: false
+
+- name: Add the Elephant–Goldfish marketplace
+  ansible.builtin.command:
+    argv:
+      - "{{ codex_egm_cli }}"
+      - plugin
+      - marketplace
+      - add
+      - google/elephant-goldfish-model
+  when: >-
+    'egm' not in ((codex_marketplaces.stdout | from_json).marketplaces
+                  | map(attribute='name'))
+  changed_when: true
+
+- name: List installed Elephant–Goldfish plugins
+  ansible.builtin.command:
+    argv: ["{{ codex_egm_cli }}", plugin, list, --marketplace, egm, --json]
+  register: codex_egm_plugins
+  changed_when: false
+
+- name: Install the Elephant–Goldfish plugin
+  ansible.builtin.command:
+    argv: ["{{ codex_egm_cli }}", plugin, add, egm@egm]
+  when: >-
+    'egm@egm' not in ((codex_egm_plugins.stdout | from_json).installed
+                      | map(attribute='pluginId'))
+  changed_when: true

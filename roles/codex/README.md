@@ -68,6 +68,13 @@ workflow uses your Codex subscription, including any subagent work. Use `/model`
 to select a different primary model for harder work and `/status` to inspect
 session token use.
 
+## Elephant–Goldfish review
+
+The role installs Google's `egm@egm` plugin from its upstream marketplace.
+Start a fresh CLI session and select `egm-review` for a design document or
+`egm-lite` for a small refactor or bug fix. Give the skill the draft or change
+and the files reviewers should read. Fresh reviewers consume subscription quota.
+
 ## Variables
 
 | Variable | Default | Description |
@@ -77,3 +84,4 @@ session token use.
 | `codex_brew_cask` | `codex` | Homebrew cask to upgrade on macOS. |
 | `codex_install_dir` | `~/.local/bin` | Per-user launcher directory and Linux command directory. |
 | `codex_user_home` | `$CODEX_HOME` or `~/.codex` | Directory for user agent files and plugin installation. |
+| `codex_egm_enabled` | `true` | Install Elephant–Goldfish if missing. Set to `false` to skip plugin setup. |

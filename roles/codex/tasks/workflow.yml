@@ -19,3 +19,15 @@
     src: workenv-scout.toml
     dest: "{{ codex_user_home }}/agents/workenv-scout.toml"
     mode: "0644"
+
+- name: Manage the Elephant–Goldfish plugin
+  ansible.builtin.import_tasks: elephant-goldfish.yml
+  when:
+    - codex_egm_enabled | bool
+    - not ansible_check_mode
+  vars:
+    codex_egm_cli: >-
+      {{ homebrew_prefix + '/bin/codex' if ansible_facts['system'] == 'Darwin'
+         else codex_install_dir + '/codex' }}
+  environment:
+    CODEX_HOME: "{{ codex_user_home }}"

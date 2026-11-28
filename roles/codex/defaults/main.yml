@@ -17,3 +17,6 @@ codex_brew_cask: "codex"
 codex_user_home: >-
   {{ ansible_facts['env'].CODEX_HOME
      | default(ansible_facts['env'].HOME + '/.codex', true) }}
+
+# Install Google's Elephant–Goldfish plugin for on-demand design and review.
+codex_egm_enabled: true

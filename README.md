@@ -27,7 +27,8 @@ temporary playbook listing every selected role plus that engine, and applies it.
 where that generated playbook sits.
 
 The [Codex role](roles/codex/README.md) includes a CLI launcher for working in
-multiple local Git checkouts in one session and a lightweight scout.
+multiple local Git checkouts in one session, a lightweight scout, and the
+Elephant–Goldfish review plugin.
 
 ## Usage
 
