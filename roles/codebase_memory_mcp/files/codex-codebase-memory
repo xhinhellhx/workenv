@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+
+def warm_index(binary, root, state):
+    key = hashlib.sha256(os.fsencode(root)).hexdigest()
+    with (state / f"{key}.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        listing = subprocess.run(
+            [binary, "cli", "list_projects"], input="{}", text=True,
+            capture_output=True, timeout=30, check=True,
+        )
+        if any(project["root_path"] == root for project in json.loads(listing.stdout)["projects"]):
+            return
+        env = {**os.environ, "CBM_WORKERS": os.environ.get("CBM_WORKERS", "4")}
+        result = subprocess.run(
+            [binary, "cli", "index_repository"], input=json.dumps({
+                "repo_path": root, "mode": "fast", "persistence": False,
+            }), text=True, env=env, capture_output=True, check=True,
+        )
+        status = json.loads(result.stdout)
+        if status.get("status") != "indexed":
+            raise RuntimeError(f"indexing {root}: {status.get('error') or status.get('status')}")
+
+
+def serve(binary, arguments):
+    git = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
+    )
+    if git.returncode == 0:
+        root = os.path.realpath(git.stdout.rstrip("\n"))
+        os.chdir(root)
+        cache = Path(os.environ.get("CBM_CACHE_DIR") or Path.home() / ".cache/codebase-memory-mcp")
+        state = cache.resolve() / "codex-startup"
+        try:
+            state.mkdir(mode=0o700, parents=True, exist_ok=True)
+            with (state / "index.log").open("a") as log:
+                subprocess.Popen(
+                    [sys.executable, __file__, "--warm", binary, root, str(state)],
+                    stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                    start_new_session=True,
+                )
+        except OSError as error:
+            print(f"codebase-memory startup indexing: {error}", file=sys.stderr)
+    os.execv(binary, [binary, *arguments])
+
+
+if __name__ == "__main__":
+    if sys.argv[1] == "--warm":
+        _, _, binary, root, state = sys.argv
+        warm_index(binary, root, Path(state))
+    else:
+        serve(sys.argv[1], sys.argv[2:])

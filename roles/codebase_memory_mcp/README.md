@@ -14,9 +14,12 @@ temporary directory and runs the binary's own `install` subcommand, which:
 Because of the agent auto-detection, `provision.sh` places this role **after**
 `claude_code` and `codex`, so those agents exist by the time registration runs.
 
-When Codex is selected, `provision.sh` also checks the Codex MCP registration
-on every run. It creates a missing entry through `codex mcp add`, including
-when the binary is already installed. Existing entries keep their settings.
+When Codex is selected, `provision.sh` installs a graph server launcher and
+checks its MCP registration. It registers the launcher for new and stock
+entries. The launcher normalizes the working directory to the Git root and
+starts a background index only for a missing checkout. Startup work is logged
+under `codex-startup/index.log` in the graph cache. Customized entries keep
+their settings.
 
 The role only reinstalls the binary when the running
 `codebase-memory-mcp --version` doesn't match `codebase_memory_mcp_version`.
