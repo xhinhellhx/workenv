@@ -1,0 +1,17 @@
+---
+- name: Check for the global glab skill
+  ansible.builtin.stat:
+    path: "{{ ansible_facts['env'].HOME }}/.agents/skills/glab/SKILL.md"
+  register: glab_skill
+
+- name: Install the bundled glab skill when missing
+  ansible.builtin.command:
+    argv: ["{{ glab_command }}", skills, install, glab, --global]
+  vars:
+    glab_command: >-
+      {{ (homebrew_prefix + '/bin' if ansible_facts['system'] == 'Darwin'
+           else glab_install_dir) + '/glab' }}
+  when:
+    - not glab_skill.stat.exists
+    - not ansible_check_mode
+  changed_when: true
