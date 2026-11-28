@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+	printf '%s\n' 'Usage: codex-repos REPO [REPO ...] -- "task"'
+}
+
+die() {
+	printf 'codex-repos: %s\n' "$1" >&2
+	exit 2
+}
+
+repo_root() {
+	local toplevel
+	toplevel=$(git -C "$1" rev-parse --show-toplevel 2>/dev/null) || return 1
+	(cd -- "$toplevel" && pwd -P)
+}
+
+if [[ ${1:-} == --help || ${1:-} == -h ]]; then
+	usage
+	exit 0
+fi
+
+primary=$(repo_root .) || die 'Run this from the primary Git checkout.'
+options=(--sandbox workspace-write)
+roots=("$primary")
+while [[ $# -gt 0 && $1 != -- ]]; do
+	root=$(repo_root "$1") || die "Not a Git checkout: $1"
+	shift
+	for seen in "${roots[@]}"; do
+		[[ $seen != "$root" ]] || continue 2
+	done
+	roots+=("$root")
+	options+=(--add-dir "$root")
+done
+
+if [[ $# -ne 2 || $1 != -- || -z $2 || ${#roots[@]} -lt 2 ]]; then
+	usage >&2
+	exit 2
+fi
+
+printf -v repo_list '  %q\n' "${roots[@]:1}"
+prompt=$(
+	cat <<EOF
+$2
+
+Primary checkout: $(printf '%q' "$primary")
+Additional checkouts in scope:
+$repo_list
+Before working in an additional checkout, read its root and applicable nested
+AGENTS.override.md or AGENTS.md instructions. Inspect Git status, run commands,
+and report changes and verification separately for each affected checkout.
+
+Use narrow symbol or text searches for simple lookups. For broad discovery or
+dependency tracing, use codebase-memory-mcp if available. Select the graph by
+checkout explicitly and confirm results against current source before editing.
+Keep queries bounded and index only the checkouts relevant to the task.
+
+For independent, tightly scoped read-only lookups, delegate to workenv-scout
+when available and when the lookup would otherwise take several tool calls.
+Handle implementation, ambiguous findings, and final verification in this
+session.
+EOF
+)
+
+exec codex "${options[@]}" -- "$prompt"

@@ -14,3 +14,6 @@
 - name: Install codex on Linux (standalone installer)
   ansible.builtin.import_tasks: install-linux.yml
   when: ansible_facts['system'] == "Linux"
+
+- name: Configure the Codex workflow
+  ansible.builtin.import_tasks: workflow.yml

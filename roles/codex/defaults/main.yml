@@ -12,3 +12,8 @@ codex_install_dir: "{{ ansible_facts['env'].HOME }}/.local/bin"
 
 # macOS: Codex is distributed as a Homebrew cask.
 codex_brew_cask: "codex"
+
+# The CLI loads user agents from this directory.
+codex_user_home: >-
+  {{ ansible_facts['env'].CODEX_HOME
+     | default(ansible_facts['env'].HOME + '/.codex', true) }}

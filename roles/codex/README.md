@@ -35,6 +35,39 @@ left in place; use the new per-user command. If you previously overrode
 `codex_install_dir` with a system directory, update that override to a directory
 writable by the target user.
 
+## Work across local checkouts
+
+From your primary checkout, name the other Git checkouts the task needs:
+
+```sh
+codex-repos ../web -- 'Add pagination to the Go API and use it in the React list.'
+```
+
+List several checkout paths before `--` when needed. Paths can point at the
+root or a subdirectory of a checkout, including linked Git worktrees. Quote
+paths containing spaces. The launcher keeps the primary working directory and
+grants workspace write access to each named checkout with `--add-dir`. It tells
+Codex to read the other repos' applicable `AGENTS.md` or `AGENTS.override.md`
+files and report verification for each one. Each checkout keeps its own Git
+status, history, and build commands. Start `codex` directly for single-repo work.
+
+## Code discovery and model routing
+
+Use a narrow search for known files or symbols. For dependency discovery, use
+`codebase-memory-mcp` with the selected checkout's absolute path when indexing
+and its project ID when querying. Keep result counts small and confirm findings
+against the source or language server, especially for C/C++ macros or templates
+and dynamic React code. The graph role registers the server with Codex when
+Codex is selected in `provision.sh`.
+
+The launcher uses your active Codex configuration for the primary session.
+Its prompt routes independent read-only lookups to the installed `workenv-scout`
+agent when the lookup would take several tool calls. The scout uses GPT-6 Luna.
+The primary model handles changes and verification. With a ChatGPT sign-in the
+workflow uses your Codex subscription, including any subagent work. Use `/model`
+to select a different primary model for harder work and `/status` to inspect
+session token use.
+
 ## Variables
 
 | Variable | Default | Description |
@@ -42,4 +75,5 @@ writable by the target user.
 | `codex_version` | `latest` | Latest stable release or an explicit Linux version. |
 | `codex_install_url` | `https://chatgpt.com/codex/install.sh` | Official Linux installer. |
 | `codex_brew_cask` | `codex` | Homebrew cask to upgrade on macOS. |
-| `codex_install_dir` | `~/.local/bin` | Per-user Linux command directory. |
+| `codex_install_dir` | `~/.local/bin` | Per-user launcher directory and Linux command directory. |
+| `codex_user_home` | `$CODEX_HOME` or `~/.codex` | Directory for user agent files and plugin installation. |

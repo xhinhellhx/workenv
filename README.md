@@ -26,6 +26,9 @@ temporary playbook listing every selected role plus that engine, and applies it.
 `group_vars`/`host_vars` live next to the inventory so they load regardless of
 where that generated playbook sits.
 
+The [Codex role](roles/codex/README.md) includes a CLI launcher for working in
+multiple local Git checkouts in one session and a lightweight scout.
+
 ## Usage
 
 `provision.sh` installs the required Galaxy collections (`requirements.yml`)

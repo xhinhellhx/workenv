@@ -1,0 +1,21 @@
+---
+- name: Ensure personal Codex agent and launcher directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ codex_user_home }}/agents"
+    - "{{ codex_install_dir }}"
+
+- name: Install the cross-repository Codex launcher
+  ansible.builtin.copy:
+    src: codex-repos
+    dest: "{{ codex_install_dir }}/codex-repos"
+    mode: "0755"
+
+- name: Install the lightweight Codex scout
+  ansible.builtin.copy:
+    src: workenv-scout.toml
+    dest: "{{ codex_user_home }}/agents/workenv-scout.toml"
+    mode: "0644"
