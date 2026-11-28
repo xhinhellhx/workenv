@@ -23,3 +23,9 @@ codex_egm_enabled: true
 
 # Absolute paths to multi-repo workspaces that should share graph guidance.
 codex_graph_workspaces: []
+
+# Optional HTTPS endpoint for the GitLab instance's native MCP server.
+codex_gitlab_mcp_url: ""
+
+# The bridge handles GitLab discovery separately from the Codex HTTP client.
+codex_gitlab_mcp_remote_version: "0.17.2"

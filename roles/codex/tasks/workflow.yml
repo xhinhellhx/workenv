@@ -20,9 +20,8 @@
     dest: "{{ codex_install_dir }}/codex-index-workspace"
     mode: "0755"
 
-- name: Configure shared code graph guidance
+- name: Configure global tool routing and workspace guidance
   ansible.builtin.import_tasks: graph-workspaces.yml
-  when: codex_graph_workspaces | length > 0
 
 - name: Install the lightweight Codex scout
   ansible.builtin.copy:
@@ -36,6 +35,12 @@
     dest: "{{ ansible_facts['env'].HOME }}/.agents/skills/"
     directory_mode: "0755"
     mode: "0644"
+
+- name: Configure the GitLab MCP server
+  ansible.builtin.import_tasks: gitlab-mcp.yml
+  when:
+    - codex_gitlab_mcp_url | length > 0
+    - not ansible_check_mode
 
 - name: Manage the Elephant–Goldfish plugin
   ansible.builtin.import_tasks: elephant-goldfish.yml

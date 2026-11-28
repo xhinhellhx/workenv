@@ -26,3 +26,29 @@
       {{ 'AGENTS.override.md'
          if codex_graph_agents_override.stat.size | default(0) > 0
          else 'AGENTS.md' }}
+  when: codex_graph_workspaces | length > 0
+
+- name: Add tool routing to the active personal instructions
+  ansible.builtin.blockinfile:
+    path: "{{ codex_user_home }}/{{ codex_tools_agents_file }}"
+    create: true
+    mode: "0600"
+    marker: "<!-- {mark} WORKENV CODEX TOOL ROUTING -->"
+    block: |
+      - Use focused text searches for known paths and exact terms. For symbol
+        navigation, use Serena or the language server when available. For wider
+        code discovery and dependency tracing, use the codebase-memory graph
+        with a confirmed project ID and a small result limit. Verify against
+        current source. Index a missing checkout only if its graph is useful.
+      - Use workenv-scout for independent read-only lookups that would take
+        several tool calls. Keep implementation and verification in the main
+        session. Use the relevant Elephant–Goldfish skill for requested fresh
+        review when available.
+      - For GitLab lookups, use authenticated GitLab MCP tools when available.
+        Use the bundled glab skill for CLI workflows or when MCP is unavailable.
+        Perform external writes only as authorized by the user.
+  vars:
+    codex_tools_agents_file: >-
+      {{ 'AGENTS.override.md'
+         if codex_graph_agents_override.stat.size | default(0) > 0
+         else 'AGENTS.md' }}

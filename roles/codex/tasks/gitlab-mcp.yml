@@ -1,0 +1,41 @@
+---
+- name: List configured MCP servers for the GitLab setup
+  ansible.builtin.command:
+    argv: ["{{ codex_gitlab_cli }}", mcp, list, --json]
+  vars:
+    codex_gitlab_cli: >-
+      {{ (homebrew_prefix + '/bin' if ansible_facts['system'] == 'Darwin'
+           else codex_install_dir) + '/codex' }}
+  environment:
+    CODEX_HOME: "{{ codex_user_home }}"
+  register: codex_gitlab_servers
+  changed_when: false
+
+- name: Register GitLab through its documented MCP bridge
+  ansible.builtin.command:
+    argv:
+      - "{{ codex_gitlab_cli }}"
+      - mcp
+      - add
+      - gitlab
+      - --
+      - npx
+      - --yes
+      - "mcp-remote@{{ codex_gitlab_mcp_remote_version }}"
+      - "{{ codex_gitlab_mcp_url }}"
+      - --static-oauth-client-metadata
+      - '{"scope":"mcp"}'
+  vars:
+    codex_gitlab_cli: >-
+      {{ (homebrew_prefix + '/bin' if ansible_facts['system'] == 'Darwin'
+           else codex_install_dir) + '/codex' }}
+    codex_gitlab_entries: >-
+      {{ codex_gitlab_servers.stdout | from_json
+         | selectattr('name', 'equalto', 'gitlab') | list }}
+  environment:
+    CODEX_HOME: "{{ codex_user_home }}"
+  when: >-
+    codex_gitlab_entries | length == 0 or
+    (codex_gitlab_entries[0].transport.url | default('')
+     == codex_gitlab_mcp_url)
+  changed_when: true

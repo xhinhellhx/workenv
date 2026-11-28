@@ -58,7 +58,9 @@ Use a narrow search for known files or symbols. For dependency discovery, use
 and its project ID when querying. Keep result counts small and confirm findings
 against the source or language server, especially for C/C++ macros or templates
 and dynamic React code. The graph role registers the server with Codex when
-Codex is selected in `provision.sh`.
+Codex is selected in `provision.sh`. The server launcher resolves the current
+Git root even when Codex starts in a subdirectory. A missing index builds in
+the background, and the graph server manages its normal checkout watcher.
 
 For a directory containing many separate checkouts, build one local project
 index per checkout, then link supported service calls:
@@ -82,8 +84,9 @@ up its own repository instructions. Use `codex-repos` when a task also needs
 write access to named sibling checkouts.
 
 The launcher uses your active Codex configuration for the primary session.
-Its prompt routes independent read-only lookups to the installed `workenv-scout`
-agent when the lookup would take several tool calls. The scout uses GPT-6 Luna.
+Global guidance applies in regular CLI sessions too. It routes independent
+read-only lookups to `workenv-scout` when they would take several tool calls.
+The scout uses GPT-6 Luna.
 The primary model handles changes and verification. With a ChatGPT sign-in the
 workflow uses your Codex subscription, including any subagent work. Use `/model`
 to select a different primary model for harder work and `/status` to inspect
@@ -109,6 +112,14 @@ Codex can select it automatically when the task matches its description.
 | Language reviews | `go-review`, `c-cpp-review`, `typescript-react-review` |
 | Development tools | `golangci-lint`, `conventional-commits` |
 
+## GitLab
+
+The `glab` role installs GitLab's bundled skill. Set `codex_gitlab_mcp_url`
+to your instance's HTTPS `/api/v4/mcp` endpoint to register the server through
+GitLab's documented `mcp-remote` bridge. On the first connection, the bridge
+opens a browser for OAuth consent. Codex uses the configured MCP for GitLab
+lookups and the glab skill for command-line workflows and fallback.
+
 ## Variables
 
 | Variable | Default | Description |
@@ -120,3 +131,5 @@ Codex can select it automatically when the task matches its description.
 | `codex_user_home` | `$CODEX_HOME` or `~/.codex` | Directory for user agent files and plugin installation. |
 | `codex_egm_enabled` | `true` | Install Elephant–Goldfish if missing. Set to `false` to skip plugin setup. |
 | `codex_graph_workspaces` | `[]` | Absolute workspace paths to include in personal graph guidance. |
+| `codex_gitlab_mcp_url` | `""` | GitLab MCP endpoint to register in the user config. |
+| `codex_gitlab_mcp_remote_version` | `0.17.2` | Version of the GitLab MCP bridge to run through npx. |
