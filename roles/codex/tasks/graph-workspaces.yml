@@ -1,0 +1,28 @@
+---
+- name: Check for a personal Codex instructions override
+  ansible.builtin.stat:
+    path: "{{ codex_user_home }}/AGENTS.override.md"
+    follow: true
+  register: codex_graph_agents_override
+
+- name: Add workspace graph guidance to the active personal instructions
+  ansible.builtin.blockinfile:
+    path: "{{ codex_user_home }}/{{ codex_graph_agents_file }}"
+    create: true
+    mode: "0600"
+    marker: "<!-- {mark} WORKENV CODE GRAPH WORKSPACES -->"
+    block: |
+      {% for workspace in codex_graph_workspaces %}
+      - When the working directory is `{{ workspace }}` or a descendant, treat
+        that directory tree as one multi-repo workspace for code discovery.
+        Use `codebase-memory-mcp` `list_projects` and match by `root_path`.
+        Query relevant project IDs with small limits. Use cross-service
+        traces when applicable. Verify findings against current source. Keep the
+        current Git checkout primary and follow each checkout's instructions
+        before changing it. Other checkouts can be added explicitly for edits.
+      {% endfor %}
+  vars:
+    codex_graph_agents_file: >-
+      {{ 'AGENTS.override.md'
+         if codex_graph_agents_override.stat.size | default(0) > 0
+         else 'AGENTS.md' }}

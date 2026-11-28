@@ -60,6 +60,27 @@ against the source or language server, especially for C/C++ macros or templates
 and dynamic React code. The graph role registers the server with Codex when
 Codex is selected in `provision.sh`.
 
+For a directory containing many separate checkouts, build one local project
+index per checkout, then link supported service calls:
+
+```sh
+codex-index-workspace /path/to/workspace
+codex-index-workspace /path/to/workspace --link
+codex-index-workspace /path/to/workspace --list
+```
+
+The indexer runs locally and stores graphs in the same cache as the Codex MCP
+server. Run the first two commands again to refresh the workspace. Cross-repo
+links cover recognized service calls and messaging. For Git dependencies such
+as Go modules, CMake targets, or TypeScript packages, confirm dependency paths
+in the manifests and query the corresponding projects separately.
+
+Set `codex_graph_workspaces` to a list of absolute workspace paths when
+provisioning to add scoped guidance to the active personal `AGENTS.md` or
+`AGENTS.override.md`. A `codex` launch inside any listed workspace still picks
+up its own repository instructions. Use `codex-repos` when a task also needs
+write access to named sibling checkouts.
+
 The launcher uses your active Codex configuration for the primary session.
 Its prompt routes independent read-only lookups to the installed `workenv-scout`
 agent when the lookup would take several tool calls. The scout uses GPT-6 Luna.
@@ -85,3 +106,4 @@ and the files reviewers should read. Fresh reviewers consume subscription quota.
 | `codex_install_dir` | `~/.local/bin` | Per-user launcher directory and Linux command directory. |
 | `codex_user_home` | `$CODEX_HOME` or `~/.codex` | Directory for user agent files and plugin installation. |
 | `codex_egm_enabled` | `true` | Install Elephant–Goldfish if missing. Set to `false` to skip plugin setup. |
+| `codex_graph_workspaces` | `[]` | Absolute workspace paths to include in personal graph guidance. |

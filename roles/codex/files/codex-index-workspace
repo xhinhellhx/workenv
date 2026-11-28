@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+
+def graph(tool, **arguments):
+    result = subprocess.run(
+        ["codebase-memory-mcp", "cli", tool],
+        input=json.dumps(arguments), text=True, capture_output=True,
+    )
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or f"{tool} exited {result.returncode}")
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"{tool} returned invalid JSON") from error
+
+
+def checkouts(workspace):
+    for directory, folders, files in os.walk(workspace):
+        folders[:] = sorted(name for name in folders if not name.startswith("."))
+        if ".git" not in files and not (Path(directory) / ".git").is_dir():
+            continue
+        result = subprocess.run(
+            ["git", "-C", directory, "rev-parse", "--show-toplevel"],
+            text=True, capture_output=True,
+        )
+        path = Path(directory)
+        if result.returncode == 0 and Path(result.stdout.strip()).resolve() == path:
+            yield path
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Build local code graphs for a workspace of Git checkouts.")
+    parser.add_argument("workspace", type=Path)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--list", action="store_true", help="Show indexed project IDs and checkout paths.")
+    mode.add_argument("--link", action="store_true", help="Link supported service calls between indexed checkouts.")
+    args = parser.parse_args()
+    root = args.workspace.resolve()
+    if not root.is_dir():
+        parser.error(f"workspace is not a directory: {root}")
+
+    if args.list or args.link:
+        projects = graph("list_projects")["projects"]
+        selected = sorted(
+            (entry["name"], path)
+            for entry in projects
+            if (path := Path(entry["root_path"])).is_relative_to(root) and path.is_dir()
+        )
+        if args.list:
+            for name, path in selected:
+                print(f"{name}\t{path}")
+            return 0
+        targets = [name for name, _ in selected]
+        if len(targets) < 2:
+            parser.error("index at least two checkouts before linking")
+        jobs = ((path, {
+            "mode": "cross-repo-intelligence",
+            "target_projects": [target for target in targets if target != name],
+        }) for name, path in selected)
+        expected = "success"
+    else:
+        repos = list(checkouts(root))
+        if not repos:
+            parser.error(f"no Git checkouts found under {root}")
+        jobs = ((path, {"mode": "fast", "persistence": False}) for path in repos)
+        expected = "indexed"
+
+    failed = 0
+    for path, settings in jobs:
+        try:
+            result = graph("index_repository", repo_path=str(path), **settings)
+            if result.get("status") != expected:
+                raise RuntimeError(result.get("error") or result.get("status") or "missing status")
+            detail = result["project"]
+            if args.link:
+                detail += f" ({result['total_cross_edges']} cross-repo edges)"
+            print(f"{path.relative_to(root)}\t{detail}", flush=True)
+        except RuntimeError as error:
+            failed += 1
+            print(f"{path.relative_to(root)}: {error}", file=sys.stderr, flush=True)
+    return int(failed > 0)
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (OSError, RuntimeError) as error:
+        sys.exit(str(error))

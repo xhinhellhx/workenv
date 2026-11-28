@@ -20,3 +20,6 @@ codex_user_home: >-
 
 # Install Google's Elephant–Goldfish plugin for on-demand design and review.
 codex_egm_enabled: true
+
+# Absolute paths to multi-repo workspaces that should share graph guidance.
+codex_graph_workspaces: []
