@@ -30,6 +30,13 @@
     dest: "{{ codex_user_home }}/agents/workenv-scout.toml"
     mode: "0644"
 
+- name: Install the global Codex skills
+  ansible.builtin.copy:
+    src: skills/
+    dest: "{{ ansible_facts['env'].HOME }}/.agents/skills/"
+    directory_mode: "0755"
+    mode: "0644"
+
 - name: Manage the Elephant–Goldfish plugin
   ansible.builtin.import_tasks: elephant-goldfish.yml
   when:

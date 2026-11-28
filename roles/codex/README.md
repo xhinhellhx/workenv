@@ -96,6 +96,18 @@ Start a fresh CLI session and select `egm-review` for a design document or
 `egm-lite` for a small refactor or bug fix. Give the skill the draft or change
 and the files reviewers should read. Fresh reviewers consume subscription quota.
 
+## Global coding skills
+
+The role copies its skills into `~/.agents/skills`, where Codex can discover
+them across repositories. Each skill can be invoked by name with `$`, and
+Codex can select it automatically when the task matches its description.
+
+| Workflow | Skills |
+| --- | --- |
+| API contracts and interfaces | `google-rest-api-design`, `ui-design` |
+| Language reviews | `go-review`, `c-cpp-review`, `typescript-react-review` |
+| Development tools | `golangci-lint`, `conventional-commits` |
+
 ## Variables
 
 | Variable | Default | Description |
