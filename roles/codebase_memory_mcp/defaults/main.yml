@@ -16,6 +16,9 @@ codebase_memory_mcp_ui: true
 # and registers the MCP server with every detected coding agent.
 codebase_memory_mcp_bin: "{{ ansible_facts['env'].HOME }}/.local/bin/codebase-memory-mcp"
 
+# provision.sh enables the explicit Codex check when Codex is selected.
+codebase_memory_mcp_register_codex: false
+
 # Download details. Release assets are named
 # codebase-memory-mcp[-ui]-{darwin|linux}-{amd64|arm64}.tar.gz.
 codebase_memory_mcp_variant: "{{ 'codebase-memory-mcp-ui' if codebase_memory_mcp_ui else 'codebase-memory-mcp' }}"

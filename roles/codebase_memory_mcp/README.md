@@ -14,7 +14,11 @@ temporary directory and runs the binary's own `install` subcommand, which:
 Because of the agent auto-detection, `provision.sh` places this role **after**
 `claude_code` and `codex`, so those agents exist by the time registration runs.
 
-The role stays idempotent by only reinstalling when the running
+When Codex is selected, `provision.sh` also checks the Codex MCP registration
+on every run. It creates a missing entry through `codex mcp add`, including
+when the binary is already installed. Existing entries keep their settings.
+
+The role only reinstalls the binary when the running
 `codebase-memory-mcp --version` doesn't match `codebase_memory_mcp_version`.
 Note that the `ui` and headless builds report the same version, so toggling
 `codebase_memory_mcp_ui` alone won't trigger a reinstall — remove
@@ -29,6 +33,7 @@ Note that the `ui` and headless builds report the same version, so toggling
 |                                     |                                    | (`codebase-memory-mcp --ui=true --port=9749`, then open         |
 |                                     |                                    | `http://localhost:9749`). `false` installs the headless build.  |
 | `codebase_memory_mcp_bin`           | `~/.local/bin/codebase-memory-mcp` | Where the `install` subcommand puts the binary.                 |
+| `codebase_memory_mcp_register_codex` | `false`                            | Ensure the Codex MCP entry exists. `provision.sh` enables it when installing Codex. |
 | `codebase_memory_mcp_variant`       | derived                            | Release asset family, from `codebase_memory_mcp_ui`.            |
 | `codebase_memory_mcp_os`            | derived                            | `darwin` or `linux`, from the host system.                      |
 | `codebase_memory_mcp_arch`          | derived                            | `arm64` or `amd64`, from the host architecture.                 |

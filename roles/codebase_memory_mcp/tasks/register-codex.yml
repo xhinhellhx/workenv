@@ -1,0 +1,35 @@
+---
+- name: Check and repair the Codex code graph registration
+  vars:
+    codebase_memory_mcp_codex_bin_dir: >-
+      {{ homebrew_prefix + '/bin' if ansible_facts['system'] == 'Darwin'
+         else codex_install_dir
+         | default(ansible_facts['env'].HOME + '/.local/bin') }}
+  environment:
+    CODEX_HOME: >-
+      {{ codex_user_home | default(ansible_facts['env'].CODEX_HOME
+         | default(ansible_facts['env'].HOME + '/.codex', true)) }}
+  block:
+    - name: List configured Codex MCP servers
+      ansible.builtin.command:
+        argv:
+          - "{{ codebase_memory_mcp_codex_bin_dir }}/codex"
+          - mcp
+          - list
+          - --json
+      register: codebase_memory_mcp_codex_servers
+      changed_when: false
+
+    - name: Register the code graph with Codex when missing
+      ansible.builtin.command:
+        argv:
+          - "{{ codebase_memory_mcp_codex_bin_dir }}/codex"
+          - mcp
+          - add
+          - codebase-memory-mcp
+          - --
+          - "{{ codebase_memory_mcp_bin }}"
+      when: >-
+        'codebase-memory-mcp' not in (codebase_memory_mcp_codex_servers.stdout
+                                     | from_json | map(attribute='name'))
+      changed_when: true

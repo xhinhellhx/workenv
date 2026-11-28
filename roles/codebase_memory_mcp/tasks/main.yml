@@ -34,3 +34,9 @@
       ansible.builtin.file:
         path: "{{ codebase_memory_mcp_tmp.path }}"
         state: absent
+
+- name: Ensure Codex can discover the code graph
+  ansible.builtin.import_tasks: register-codex.yml
+  when:
+    - codebase_memory_mcp_register_codex | bool
+    - not ansible_check_mode

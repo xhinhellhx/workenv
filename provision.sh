@@ -237,6 +237,9 @@ generate_playbook() {
 		printf -- '- name: Configure work environment\n'
 		printf '  hosts: workstations\n'
 		printf '  gather_facts: true\n'
+		if [[ "$install_codex" -eq 1 ]]; then
+			printf '  vars:\n    codebase_memory_mcp_register_codex: true\n'
+		fi
 		printf '  roles:\n'
 		for role in "${roles[@]}"; do
 			printf '    - %s\n' "$role"
